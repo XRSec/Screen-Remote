@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -o '[0-9]\\\\+\\\\.dp' /workspace/scrcpy-mobile/app/src/main/java/com/mobile/scrcpy/android/ui/screens/*.kt)",
+      "Bash(./gradlew compileDebugKotlin --console=plain)",
+      "Bash(export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64)",
+      "Bash(grep -r \"minSdkVersion\\\\|minSdk\" /workspace/scrcpy-mobile/app/build.gradle*)",
+      "Bash(find /workspace/scrcpy-mobile/app/src/main -name \"*.kt\" -exec grep -l \"Vibrator\\\\|PowerManager\\\\|WakeLock\" {} ;)",
+      "Bash(git add .)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\n添加 go 服务器相关文件和配置\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push)",
+      "Bash(git add -A)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\n移除 go 目录文件并更新配置\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git add .claude/settings.local.json)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\n更新本地配置文件\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n\\)\")"
+    ]
+  }
+}

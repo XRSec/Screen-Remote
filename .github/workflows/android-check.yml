@@ -1,0 +1,76 @@
+name: Android CI - Check & Test
+
+on:
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main, develop ]
+  # schedule:
+  #   # 每天 UTC 00:00 运行（北京时间 08:00）
+  #   - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5.2.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x scrcpy-mobile/gradlew
+
+      - name: Run Lint
+        working-directory: ./scrcpy-mobile
+        run: ./gradlew lintDebug --stacktrace
+        continue-on-error: true
+
+      - name: Upload Lint Results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: lint-results-${{ github.sha }}
+          path: scrcpy-mobile/app/build/reports/lint-results-debug.html
+          retention-days: 7
+
+      - name: Check Build
+        working-directory: ./scrcpy-mobile
+        run: ./gradlew check --stacktrace
+        continue-on-error: true
+
+  build-matrix:
+    name: Build APK (Multi-ABI)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        abi: [arm64-v8a, armeabi-v7a, x86_64, x86]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5.2.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x scrcpy-mobile/gradlew
+
+      - name: Build APK for ${{ matrix.abi }}
+        working-directory: ./scrcpy-mobile
+        run: |
+          echo "Building for ABI: ${{ matrix.abi }}"
+          ./gradlew assembleDebug --stacktrace
+        continue-on-error: true

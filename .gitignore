@@ -1,0 +1,127 @@
+# Built application files
+*.apk
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+build/
+.gradle/
+
+# Gradle files
+.gradle
+/local.properties
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# IntelliJ IDEA
+*.iml
+.idea/
+*.ipr
+*.iws
+
+# ai code
+.vscode
+
+# Android Studio
+.navigation/
+captures/
+.externalNativeBuild
+.cxx
+
+# NDK
+obj/
+
+# Keystore files
+*.keystore
+*.jks
+keystore.properties
+release.keystore
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Log Files
+*.log
+
+# Android Profiling
+*.hprof
+
+# Kotlin
+*.kt.swp
+*.kt~
+
+# Backup files
+*~
+*.bak
+*.tmp
+*.temp
+
+# External native build folder generated in Android Studio 2.2 and later
+.externalNativeBuild
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+
+# Freeline
+freeline.py
+freeline/
+freeline_project_description.json
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/readme.md
+
+# Version control
+*.orig
+*.rej
+
+# Misc
+*.swp
+*~.nib
+*.moved-aside
+*.xcuserstate
+*.xcscmblueprint
+
+# Submodule build artifacts (if needed)
+external/*/build/
+external/*/.gradle/
+external/*/.idea/
+external/*/.cxx/
+external/*/local.properties
+
+# Scrcpy mobile specific (handled by submodule's own .gitignore)
+# Note: scrcpy-mobile is a git submodule, don't ignore the directory itself

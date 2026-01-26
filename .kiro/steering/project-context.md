@@ -142,6 +142,6 @@ Android API 版本兼容性统一管理：PendingIntent、前台服务、系统�
 4. 实现功能
 
 ### 文档规范
-- 不生成 markdown 文档（节约 token）
+- 不生成 markdown .md 文档（节约 token）
 - 有意义的总结/分析，提供文件名让用户自行创建
 - 文件名格式：`IMPLEMENTATION_PROGRESS_N`

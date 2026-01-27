@@ -1,5 +1,16 @@
 # 任务清单
 
+## 架构层面
+
+- [x] ✅ **架构迁移完成**（2024）
+  - [x] 核心基础设施层重组（core/）
+  - [x] 基础设施层重组（infrastructure/）
+  - [x] 功能模块重组（feature/）
+  - [x] 服务层和应用入口（service/, app/）
+  - [x] 清理旧目录和验证
+  - [x] 文档更新
+  - 详见：[MIGRATION_SUMMARY.md](MIGRATION_SUMMARY.md)
+
 ## 功能层面
 
 - [ ] `Constants.kt` 通用组件 常量 需要丰富

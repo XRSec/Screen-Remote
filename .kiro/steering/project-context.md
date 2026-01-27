@@ -45,34 +45,46 @@ Android 设备间屏幕镜像和控制应用，基于 scrcpy 技术。
 **原因**：`rememberText()` 首次订阅 Flow 返回默认值，后加载真实设置  
 **解决**：Dialog/弹窗使用 `.get()` 直接读取当前语言
 
-## 核心配置文件
+## 代码组织模式
 
-### Constants.kt (`common/Constants.kt`)
-项目常量唯一来源：AppColors、AppDimens、AppTextSizes、NetworkConstants、ScrcpyConstants、PlaceholderTexts、LogTags、UITexts
+### Models.kt 模式（类似 Go 的 model.go）
+**用途**：包级数据类、接口、枚举集中管理  
+**命名**：`Models.kt` 或 `XxxModels.kt`（如 `AdbModels.kt`）  
+**优点**：便于 `import package.*`，减少文件碎片
 
-### BilingualTexts.kt (`common/BilingualTexts.kt`)
+**已有示例**：
+- `infrastructure/adb/connection/AdbModels.kt` - DeviceInfo, VideoEncoderInfo, AudioEncoderInfo
+- `feature/codec/component/EncoderModels.kt` - EncoderInfo, EncoderType, EncoderDialogConfig
+
+**待优化**：
+- `BilingualTexts.kt` (590行) → 拆分为 `SettingsTexts.kt`, `SessionTexts.kt`, `AdbTexts.kt` 等
+- `Constants.kt` (424行) → 已按功能拆分为多个 object（AppColors, ScrcpyConstants 等）
+
+### Constants.kt 模式
+**用途**：常量定义，使用多个 object 按功能分组  
+**位置**：`core/common/Constants.kt`  
+**包含**：AppColors, AppDimens, AppTextSizes, NetworkConstants, ScrcpyConstants, PlaceholderTexts, LogTags, UITexts
+
+### 核心配置文件
+
+**BilingualTexts.kt** (`core/i18n/BilingualTexts.kt`)  
 双语文本定义，按功能模块分组（设置、会话、日志、编解码器等）
 
-### LanguageManager.kt (`common/LanguageManager.kt`)
+**LanguageManager.kt** (`core/common/manager/LanguageManager.kt`)  
 语言管理器，支持 AUTO（跟随系统）、CHINESE、ENGLISH
 
-### Models.kt (`core/data/model/Models.kt`)
-统一数据模型定义：会话、设备、配置、语言等跨模块数据结构
-
-### ApiCompatHelper.kt (`common/ApiCompatHelper.kt`)
+**ApiCompatHelper.kt** (`core/common/util/ApiCompatHelper.kt`)  
 Android API 版本兼容性统一管理：PendingIntent、前台服务、系统栏、MediaCodec、权限  
 **规范**：禁止直接使用 `Build.VERSION.SDK_INT`
 
 ## 开发规范
 
-### 文件组织
-- `common/`: Constants.kt, LanguageManager.kt, ApiCompatHelper.kt
-- `core/data/model/`: Models.kt（统一数据模型）
-- `ui/`: screens/, components/
-- `ui/viewmodels/`: ViewModel 层
-- `domain/`: 业务逻辑
-- `data/`: 数据层
-- `cpp/`: 原生代码
+### 架构分层（Google Now in Android 模式）
+- `core/` - 核心基础设施（common, designsystem, data, domain, i18n）
+- `infrastructure/` - 技术实现（adb, scrcpy, media）
+- `feature/` - 功能模块（session, remote, device, settings, codec）
+- `service/` - Android 服务
+- `app/` - 应用入口
 
 ### 代码规范
 - Kotlin 官方风格 + Material Design 3
@@ -115,18 +127,17 @@ Android API 版本兼容性统一管理：PendingIntent、前台服务、系统�
 1. **常量管理**：无硬编码，统一到 Constants.kt 或 BilingualTexts.kt
 2. **双语文本**：Dialog 用 `.get()`，主页面用 `rememberText()`
 3. **单语文本**：技术性文本使用 Constants.kt UITexts
-4. **数据模型**：无重复定义，统一到 Models.kt
+4. **数据模型**：包级数据类集中到 XxxModels.kt
 5. **API 兼容**：使用 ApiCompatHelper，禁止直接判断 SDK 版本
 6. **日志标签**：使用 LogTags，遵循包含命名
 7. **Dialog 回调**：`onDismiss` / `onBack` 不能是空函数
-8. **性能**：避免主线程阻塞
-9. **安全**：权限检查和数据验证
+8. **依赖方向**：app → feature → infrastructure → core
+9. **性能**：避免主线程阻塞
+10. **安全**：权限检查和数据验证
 
 ## 重要文档
+- `docs/ARCHITECTURE.md`: 架构详细说明
 - `docs/TODO.md`: 待办事项
-- `docs/IMPLEMENTATION_PROGRESS*.md`: 实现进度
-- `docs/android-interface-spec.md`: Android 接口规范
-- `docs/video.md`: 视频解码和后台切换详细文档
 
 ## 依赖项目
 - `external/scrcpy`: 官方 C 实现
@@ -136,12 +147,11 @@ Android API 版本兼容性统一管理：PendingIntent、前台服务、系统�
 ## 工作流程
 
 ### 添加新功能
-1. 在 `docs/TODO.md` 记录需求
+1. 确定功能归属（core/infrastructure/feature）
 2. 新增常量 → `Constants.kt`
-3. 新增数据模型 → `Models.kt`
-4. 实现功能
+3. 新增数据类 → 对应包的 `XxxModels.kt`
+4. 实现功能（遵循单向数据流：UI → ViewModel → Repository → DataSource）
 
 ### 文档规范
-- 不生成 markdown .md 文档（节约 token）
+- 不生成 markdown 文档（节约 token）
 - 有意义的总结/分析，提供文件名让用户自行创建
-- 文件名格式：`IMPLEMENTATION_PROGRESS_N`

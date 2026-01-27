@@ -1,6 +1,6 @@
 # ADB Mobile 库配置
 
-set(ADB_MOBILE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/adb-mobile)
+# set(ADB_MOBILE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/adb-mobile)
 
 # ADB Mobile 是纯 Kotlin 实现的 Android ADB 协议库
 # 包含以下核心功能：

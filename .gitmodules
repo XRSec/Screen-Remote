@@ -1,32 +1,6 @@
-
-[submodule "external/adb-mobile-ios"]
-	path = external/adb-mobile-ios
-	url = https://github.com/wsvn53/adb-mobile.git
-	shallow = true
-	fetchRecurseSubmodules = false
 [submodule "external/dadb"]
 	path = external/dadb
 	url = https://github.com/mobile-dev-inc/dadb.git
-	shallow = true
-	fetchRecurseSubmodules = false
-[submodule "external/ScrcpyForAndroid"]
-	path = external/ScrcpyForAndroid
-	url = https://github.com/zwc456baby/ScrcpyForAndroid.git
-	shallow = true
-	fetchRecurseSubmodules = false
-[submodule "external/libadb-android"]
-	path = external/libadb-android
-	url = https://github.com/MuntashirAkon/libadb-android.git
-	shallow = true
-	fetchRecurseSubmodules = false
-[submodule "external/Easycontrol"]
-	path = external/Easycontrol
-	url = https://github.com/mingzhixian/Easycontrol.git
-	shallow = true
-	fetchRecurseSubmodules = false
-[submodule "scrcpy-mobile"]
-	path = scrcpy-mobile
-	url = git@github.com:XRSec/scrcpy-mobile-src.git
 	shallow = true
 	fetchRecurseSubmodules = false
 [submodule "external/scrcpy"]
@@ -34,8 +8,36 @@
 	url = https://github.com/Genymobile/scrcpy.git
 	shallow = true
 	fetchRecurseSubmodules = false
+[submodule "external/libadb-android"]
+	path = external/libadb-android
+	url = https://github.com/MuntashirAkon/libadb-android.git
+	shallow = true
+	fetchRecurseSubmodules = false
+
+[submodule "external/Easycontrol"]
+	path = external/Easycontrol
+	url = https://github.com/mingzhixian/Easycontrol.git
+	shallow = true
+	fetchRecurseSubmodules = false
+[submodule "external/ScrcpyForAndroid"]
+	path = external/ScrcpyForAndroid
+	url = https://github.com/zwc456baby/ScrcpyForAndroid.git
+	shallow = true
+	fetchRecurseSubmodules = false
+
+[submodule "external/adb-mobile-ios"]
+	path = external/adb-mobile-ios
+	url = https://github.com/wsvn53/adb-mobile.git
+	shallow = true
+	fetchRecurseSubmodules = false
 [submodule "external/scrcpy-mobile-ios"]
 	path = external/scrcpy-mobile-ios
 	url = https://github.com/wsvn53/scrcpy-mobile.git
+	shallow = true
+	fetchRecurseSubmodules = false
+
+[submodule "scrcpy-mobile"]
+	path = scrcpy-mobile
+	url = git@github.com:XRSec/scrcpy-mobile-src.git
 	shallow = true
 	fetchRecurseSubmodules = false

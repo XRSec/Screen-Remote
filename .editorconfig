@@ -1,0 +1,16 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+indent_size = 4
+indent_style = space
+max_line_length = 120
+
+# Ktlint 规则配置
+# 禁用标准函数命名检查，因为 Compose 函数需要大写开头
+ktlint_standard_function-naming = disabled

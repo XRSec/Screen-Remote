@@ -67,6 +67,12 @@ app → feature → infrastructure → core
 > 后期如果有贡献者会考虑开源
 > 
 
+## 备忘录
+
+```regexp
+(?<!\bpackage\s)(?<!\bimport\s)com\.mobile\.scrcpy\.android\.
+```
+
 ## 多功能按键
 
 - 点击：打开/关闭菜单（就是现有的三个点按钮功能）

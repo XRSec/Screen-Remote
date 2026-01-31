@@ -105,6 +105,48 @@ onDismiss/onBack 必须修改状态触发重组，不能是空函数
 ### 后台切换机制（Dummy Surface）
 解码器启动时创建 1x1 dummy Surface 占位，前台解码到真实 Surface，后台解码到 dummy Surface 保持连接。详见 docs/video.md
 
+### 会话状态管理架构
+
+**ScrcpySessionMonitor** - 会话状态监控器（位置：`infrastructure/scrcpy/session/`）
+- **数据流向**：`ConnectionLifecycle` 推送 `SessionEvent` → `ScrcpySessionMonitor.handleEvent` 处理 → 转换为 `SessionState` → 回调 `ScrcpyClient.handleSessionStateChange`
+- **职责分离**：
+  - `handleEvent`：处理所有事件，管理组件状态，触发重连/清理逻辑
+  - `handleSessionStateChange`：仅处理 UI 关心的最终状态（Connected/Reconnecting/Failed），不重复处理中间状态
+
+**事件推送规范**：
+- ADB 连接/断开 → `SessionEvent.AdbConnected` / `AdbDisconnected`
+- Server 启动 → `SessionEvent.ServerStarting` / `ServerStarted` / `ServerFailed`
+- Socket 连接 → `SessionEvent.SocketConnected` / `SocketDisconnected` / `SocketError`
+- 解码器 → `SessionEvent.DecoderStarted` / `DecoderStopped` / `DecoderError`
+
+**ScrcpyEventBus** - SDL 风格事件总线（位置：`core/common/event/`）
+- **作用域**：连接会话内的全局事件总线，支持多设备状态管理
+- **事件分类**：UI 事件（按键、触摸、滚动）+ 监控事件（Server 日志、Socket 数据、Codec 状态、Shell 命令）+ 生命周期事件（连接、断开）+ 系统事件（错误、异常）
+- **日志系统**：ScrcpyEventLogger 统一处理所有日志输出，支持级别过滤（VERBOSE/DEBUG/INFO/WARN/ERROR）和自动采样（高频事件每 100 次输出一次）
+- **数据流向**：组件 → ScrcpyEventBus → ScrcpyEventLoop → ScrcpyEventLogger（日志）+ ScrcpyEventMonitor（状态）
+
+**核心组件**：
+- `ScrcpyEventBus.kt` - 事件总线单例
+- `ScrcpyEvent.kt` - 事件定义（含分类、日志级别、描述）
+- `ScrcpyEventLoop.kt` - 事件循环
+- `ScrcpyEventMonitor.kt` - 状态监控器
+- `ScrcpyEventLogger.kt` - 日志处理器
+- `ScrcpyEventModels.kt` - 状态模型
+
+**相关文档**：
+- `docs/EVENT_SYSTEM_GUIDE.md` - 使用指南
+- `docs/EVENT_ARCHITECTURE.md` - 完整架构
+- `docs/SDL_EVENT_FLOW.md` - 原始流程图
+- `docs/SHELL_MANAGER_GUIDE.md` - Shell 命令管理
+
+### Shell 命令管理
+
+**AdbShellManager** - 统一 Shell 命令管理器（位置：`infrastructure/adb/shell/`）
+- **作用**：统一管理所有 Shell 命令执行，自动收集状态信息
+- **监控**：自动记录命令执行时间、成功/失败状态，推送到 ScrcpyEventBus
+- **封装**：提供常用命令封装（唤醒屏幕、展开通知栏、设置剪贴板、杀进程等）
+- **优势**：避免分散的 Shell 命令调用，便于统一监控和调试
+
 ## 代码审查要点
 
 1. 无硬编码，常量统一到 Constants.kt 或 XxxTexts.kt
@@ -136,3 +178,7 @@ onDismiss/onBack 必须修改状态触发重组，不能是空函数
 - **禁止重复描述**：不要重复说明已经做过的操作
 - **直接执行**：理解需求后直接修改代码，不要先描述计划再执行
 - **最小化输出**：只输出必要的代码和关键说明，避免冗长解释
+
+### 绘图规范
+- **使用 Mermaid**：需要画图时必须使用 Markdown 的 mermaid 语法，不要使用 ASCII 字符（如 ┌ ─ │ └ 等）画图
+- **避免输出代码**：绘图时尽量不要输出代码，专注于图表本身

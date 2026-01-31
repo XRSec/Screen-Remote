@@ -30,8 +30,8 @@
 	url = https://github.com/wsvn53/adb-mobile.git
 	shallow = true
 	fetchRecurseSubmodules = false
-[submodule "external/scrcpy-mobile-ios"]
-	path = external/scrcpy-mobile-ios
+[submodule "external/screen-remote-ios"]
+	path = external/screen-remote-ios
 	url = https://github.com/wsvn53/scrcpy-mobile.git
 	shallow = true
 	fetchRecurseSubmodules = false

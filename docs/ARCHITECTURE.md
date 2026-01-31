@@ -1,18 +1,17 @@
 # Scrcpy Mobile 架构文档
 
-## 1. 架构概述
+## 概述
 
-### 1.1 设计理念
+Scrcpy Mobile 采用 **Google Now in Android** 推荐的模块化架构，遵循 **Feature-First + Core Infrastructure** 设计原则。
 
-Scrcpy Mobile 采用 **Google Now in Android** 推荐的模块化架构，遵循以下核心原则：
+### 核心原则
 
 - **单向数据流**：UI → ViewModel → Repository → DataSource
 - **依赖倒置**：高层模块不依赖低层模块，都依赖抽象
 - **关注点分离**：UI、业务逻辑、数据层严格分离
-- **可测试性**：每层独立可测试
 - **Feature-First**：按功能模块组织代码，而非技术层次
 
-### 1.2 架构图
+### 架构图
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

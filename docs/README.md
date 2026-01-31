@@ -1,6 +1,6 @@
 # Scrcpy Mobile
 
-一个基于 Scrcpy 协议的 Android 远程控制应用，采用现代化的模块化架构设计。
+基于 Scrcpy 协议的 Android 设备间远程控制应用，采用现代化模块化架构。
 
 ## 预览
 
@@ -10,62 +10,65 @@
   <img src="assets/app-setting.png" alt="app setting" width="30%" />
 </p>
 
+## 核心特性
+
+- 🎯 Android 设备间远程控制（无需 PC）
+- 🎨 iOS 风格 UI 设计（Material 3）
+- 🌐 双语支持（中文/英文）
+- 📱 会话管理与分组
+- 🎮 多功能手势控制
+- 🔧 编解码器自定义配置
+
+## 快速开始
+
+### 环境要求
+
+- Android Studio Hedgehog+
+- JDK 21
+- Android SDK 34
+- NDK 25.x+
+- CMake 3.22+
+
+### 构建项目
+
+```bash
+git clone <repository-url>
+cd scrcpy-mobile
+./gradlew assembleDebug
+```
+
 ## 项目架构
 
-本项目采用 **Google Now in Android** 推荐的模块化架构，遵循 **Feature-First + Core Infrastructure** 设计原则。
-
-### 架构层次
+采用 **Google Now in Android** 推荐的模块化架构：
 
 ```
-app/                          # 应用入口层
-├── MainActivity.kt
-└── ScreenRemoteApp.kt
-
-feature/                      # 功能模块层（Feature-First）
-├── session/                  # 会话管理
-├── remote/                   # 远程控制
-├── device/                   # 设备管理
-├── settings/                 # 设置功能
-└── codec/                    # 编解码器测试
-
-infrastructure/               # 基础设施层（技术实现）
-├── adb/                      # ADB 连接实现
-├── scrcpy/                   # Scrcpy 协议实现
-└── media/                    # 媒体编解码
-
-core/                         # 核心基础设施层
-├── common/                   # 通用工具
-├── designsystem/             # 设计系统（Material 3）
-├── data/                     # 数据层基础设施
-├── domain/                   # 领域模型
-└── i18n/                     # 国际化
-
-service/                      # Android 服务
-└── ScrcpyForegroundService.kt
+app/              # 应用入口
+feature/          # 功能模块（会话、远程控制、设备、设置）
+infrastructure/   # 基础设施（ADB、Scrcpy、媒体）
+core/             # 核心基础（通用工具、设计系统、领域模型）
+service/          # Android 服务
 ```
 
-### 依赖关系
+详见 [架构文档](ARCHITECTURE.md)
 
-```
-app → feature → infrastructure → core
-     ↓         ↓                  ↓
-   service    core              (无依赖)
-```
+## 文档导航
 
-详细架构说明请参阅 [ARCHITECTURE.md](ARCHITECTURE.md)。
+### 核心文档
+- [架构设计](ARCHITECTURE.md) - 模块化架构详解
+- [开发计划](TODO.md) - 功能规划与进度
+- [设备配对](DEVICE_PAIRING.md) - ADB 无线配对指南
+
+### 技术文档
+- [事件系统](EVENT_SYSTEM_GUIDE.md) - ScrcpyEventBus 使用指南
+- [Shell 管理](SHELL_MANAGER_GUIDE.md) - ADB Shell 命令管理
+- [事件流程](SDL_EVENT_FLOW.md) - SDL 风格事件系统架构图
+
+### 对比分析
+- [ScrcpyVS/](ScrcpyVS/) - 与其他项目的技术对比分析
 
 ## 开发进度
 
-正在开发中 `60%`，计划任务请查阅 [docs/TODO.md](TODO.md)
-
-✅ **架构迁移已完成**（2024）- 详见 [MIGRATION_SUMMARY.md](MIGRATION_SUMMARY.md)
-
-> 目前 Kiro 已破产 努力更新中
->
-> 由于目前所有代码都是作者一人编写，所以闭源处理
->
-> 后期如果有贡献者会考虑开源
-> 
+正在开发中 `60%` - 详见 [TODO.md](TODO.md)
 
 ## 备忘录
 
@@ -73,14 +76,10 @@ app → feature → infrastructure → core
 (?<!\bpackage\s)(?<!\bimport\s)com\.mobile\.scrcpy\.android\.
 ```
 
-## 多功能按键
+## 贡献
 
-- 点击：打开/关闭菜单（就是现有的三个点按钮功能）
-- 拖动：移动按钮位置（现有功能保留）
-- 长按：桌面（Home）
-- 长按+左滑：返回（Back）
-- 长按+右滑：后台任务（Recent）
-- 长按+上滑：桌面（HOME）
-- 长按+下滑：通知栏（Notification）
-- 长按：预留功能
-- 震动反馈：手势触发时提供触觉反馈
+目前由作者独立开发，暂时闭源。后期如有贡献者会考虑开源。
+
+## 许可证
+
+待定

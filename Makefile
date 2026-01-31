@@ -10,7 +10,7 @@ VERSION_CODE := $(shell grep '^VERSION_CODE=' scrcpy-mobile/gradle.properties | 
 
 # 路径配置
 APK_DIR := scrcpy-mobile/app/build/outputs/apk
-DEBUG_APK := $(APK_DIR)/debug/app-debug.apk
+DEBUG_APK := $(shell find scrcpy-mobile/app/build/outputs/apk/debug -name "*arm64-v8a-*.apk")
 RELEASE_DIR := $(APK_DIR)/release
 OUT_DIR := $(HOME)/Downloads
 
@@ -71,7 +71,7 @@ release: keystore
 
 install: debug
 	@echo "安装 debug 版本..."
-	adb install -r $(DEBUG_APK)
+	adb install -r "$(DEBUG_APK)"
 	@echo "✓ 安装完成"
 
 uninstall:
@@ -104,6 +104,9 @@ log:
 
 run: install start
 	@echo "✓ 应用已启动"
+
+getLine:
+	@find . -type f -name "*.kt" -exec wc -l {} \; | sort
 
 info:
 	@echo "应用信息："

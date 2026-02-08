@@ -102,50 +102,58 @@ onDismiss/onBack 必须修改状态触发重组，不能是空函数
 
 ## Scrcpy 会话管理
 
+### 核心设计
+
+**ScrcpyOptions** - 唯一配置结构体
+- 包含所有会话配置（用户配置 + 设备能力）
+- data class，通过 copy() 更新
+- sessionId 作为唯一标识，deviceSerial 作为设备身份标识
+
+**SessionStorage** - 配置存储
+- 持久化存储所有设备的 ScrcpyOptions
+- 只在 UI 编辑和启动会话时需要传 sessionId
+- 提供 getOptions/saveOptions/getAllSessions 方法
+
+**CurrentSession** - 当前会话
+- 管理当前活跃会话（配置 + 运行态）
+- 零参数访问：CurrentSession.current
+- 连接过程完全不需要传 sessionId
+- 启动新会话自动停止旧会话
+
+**设计原则**
+- 配置与运行态分离
+- 多会话支持，当前会话机制
+- 零参数访问，自动切换
+- 设备序列号变化时自动更新设备能力
+
+**详细设计**：参见 `docs/Session API.md`
+
 ### 后台切换机制（Dummy Surface）
 解码器启动时创建 1x1 dummy Surface 占位，前台解码到真实 Surface，后台解码到 dummy Surface 保持连接。详见 docs/video.md
 
-### 会话状态管理架构
+### 会话状态管理
 
-**ScrcpySessionMonitor** - 会话状态监控器（位置：`infrastructure/scrcpy/session/`）
-- **数据流向**：`ConnectionLifecycle` 推送 `SessionEvent` → `ScrcpySessionMonitor.handleEvent` 处理 → 转换为 `SessionState` → 回调 `ScrcpyClient.handleSessionStateChange`
-- **职责分离**：
-  - `handleEvent`：处理所有事件，管理组件状态，触发重连/清理逻辑
-  - `handleSessionStateChange`：仅处理 UI 关心的最终状态（Connected/Reconnecting/Failed），不重复处理中间状态
+**CurrentSession** - 统一事件处理和状态管理
+- **核心功能**：
+  - `handleEvent(event)` - 处理所有 SessionEvent，自动更新进度和状态
+  - `sessionState: StateFlow<SessionState>` - 响应式状态流
+  - `initMonitor(stateMachine, onReconnect)` - 初始化监控
+- **数据流向**：组件 → `SessionEvent` → `CurrentSession.handleEvent()` → 更新 `stateMachine.progress` + `sessionState`
+- **类型定义**：`SessionModels.kt` - 统一管理 SessionEvent、SessionState、SessionComponent、ComponentState、SocketType、DecoderType
 
-**事件推送规范**：
-- ADB 连接/断开 → `SessionEvent.AdbConnected` / `AdbDisconnected`
-- Server 启动 → `SessionEvent.ServerStarting` / `ServerStarted` / `ServerFailed`
-- Socket 连接 → `SessionEvent.SocketConnected` / `SocketDisconnected` / `SocketError`
-- 解码器 → `SessionEvent.DecoderStarted` / `DecoderStopped` / `DecoderError`
+**事件类型**（定义在 `SessionModels.kt`）：
+- ADB：`AdbConnecting` / `AdbConnected` / `AdbDisconnected`
+- Server：`ServerStarting` / `ServerStarted` / `ServerFailed`
+- Forward：`ForwardSetting` / `ForwardSetup` / `ForwardFailed`
+- Socket：`SocketConnecting` / `SocketConnected` / `SocketDisconnected` / `SocketError`
+- 解码器：`DecoderStarted` / `DecoderStopped` / `DecoderError`
+- 控制：`RequestReconnect` / `RequestCleanup`
 
 **ScrcpyEventBus** - SDL 风格事件总线（位置：`core/common/event/`）
 - **作用域**：连接会话内的全局事件总线，支持多设备状态管理
-- **事件分类**：UI 事件（按键、触摸、滚动）+ 监控事件（Server 日志、Socket 数据、Codec 状态、Shell 命令）+ 生命周期事件（连接、断开）+ 系统事件（错误、异常）
-- **日志系统**：ScrcpyEventLogger 统一处理所有日志输出，支持级别过滤（VERBOSE/DEBUG/INFO/WARN/ERROR）和自动采样（高频事件每 100 次输出一次）
+- **事件分类**：UI 事件（按键、触摸、滚动）+ 监控事件（Server 日志、Socket 数据、Codec 状态、Shell 命令）
+- **日志系统**：ScrcpyEventLogger 统一处理所有日志输出，支持级别过滤和自动采样
 - **数据流向**：组件 → ScrcpyEventBus → ScrcpyEventLoop → ScrcpyEventLogger（日志）+ ScrcpyEventMonitor（状态）
-
-**核心组件**：
-- `ScrcpyEventBus.kt` - 事件总线单例
-- `ScrcpyEvent.kt` - 事件定义（含分类、日志级别、描述）
-- `ScrcpyEventLoop.kt` - 事件循环
-- `ScrcpyEventMonitor.kt` - 状态监控器
-- `ScrcpyEventLogger.kt` - 日志处理器
-- `ScrcpyEventModels.kt` - 状态模型
-
-**相关文档**：
-- `docs/EVENT_SYSTEM_GUIDE.md` - 使用指南
-- `docs/EVENT_ARCHITECTURE.md` - 完整架构
-- `docs/SDL_EVENT_FLOW.md` - 原始流程图
-- `docs/SHELL_MANAGER_GUIDE.md` - Shell 命令管理
-
-### Shell 命令管理
-
-**AdbShellManager** - 统一 Shell 命令管理器（位置：`infrastructure/adb/shell/`）
-- **作用**：统一管理所有 Shell 命令执行，自动收集状态信息
-- **监控**：自动记录命令执行时间、成功/失败状态，推送到 ScrcpyEventBus
-- **封装**：提供常用命令封装（唤醒屏幕、展开通知栏、设置剪贴板、杀进程等）
-- **优势**：避免分散的 Shell 命令调用，便于统一监控和调试
 
 ## 代码审查要点
 

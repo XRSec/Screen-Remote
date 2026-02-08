@@ -2,6 +2,8 @@
 
 基于 Scrcpy 协议的 Android 设备间远程控制应用，采用现代化模块化架构。
 
+> 目前没空更新，可以用 kiro AI 辅助开发 [源码](https://github.com/XRSec/scrcpy-mobile-src)
+
 ## 预览
 
 <p align="center">
@@ -75,10 +77,6 @@ service/          # Android 服务
 ```regexp
 (?<!\bpackage\s)(?<!\bimport\s)com\.mobile\.scrcpy\.android\.
 ```
-
-## 贡献
-
-目前由作者独立开发，暂时闭源。后期如有贡献者会考虑开源。
 
 ## 许可证
 

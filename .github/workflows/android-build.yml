@@ -44,11 +44,24 @@ jobs:
         working-directory: ./scrcpy-mobile
         run: ./gradlew assembleDebug --stacktrace
 
+      - name: Rename Debug APK
+        run: |
+          VERSION_NAME=$(awk -F= '/^VERSION_NAME=/ { print $2; exit }' scrcpy-mobile/gradle.properties)
+          VERSION_CODE=$(awk -F= '/^VERSION_CODE=/ { print $2; exit }' scrcpy-mobile/gradle.properties)
+          mkdir -p scrcpy-mobile/app/build/outputs/renamed_apks/debug
+          find scrcpy-mobile/app/build/outputs/renamed_apks/debug -maxdepth 1 -name '*.apk' -delete
+          find scrcpy-mobile/app/build/outputs/apk/debug -maxdepth 1 -name 'app-*-debug.apk' | while read -r apk; do
+            name=$(basename "$apk")
+            abi=${name#app-}
+            abi=${abi%-debug.apk}
+            cp -f "$apk" "scrcpy-mobile/app/build/outputs/renamed_apks/debug/Screen Remote-${abi}-${VERSION_NAME}_${VERSION_CODE}.apk"
+          done
+
       - name: Upload Debug APK
         uses: actions/upload-artifact@v6
         with:
           name: scrcpy-mobile-debug-${{ github.sha }}
-          path: scrcpy-mobile/app/build/outputs/apk/debug/*.apk
+          path: scrcpy-mobile/app/build/outputs/renamed_apks/debug/*.apk
           retention-days: 30
 
       - name: Build Release APK (unsigned)
@@ -56,14 +69,39 @@ jobs:
         working-directory: ./scrcpy-mobile
         run: ./gradlew assembleRelease --stacktrace || ./gradlew assembleDebug --stacktrace
 
+      - name: Rename Release APK
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        run: |
+          VERSION_NAME=$(awk -F= '/^VERSION_NAME=/ { print $2; exit }' scrcpy-mobile/gradle.properties)
+          VERSION_CODE=$(awk -F= '/^VERSION_CODE=/ { print $2; exit }' scrcpy-mobile/gradle.properties)
+          mkdir -p scrcpy-mobile/app/build/outputs/renamed_apks/release
+          find scrcpy-mobile/app/build/outputs/renamed_apks/release -maxdepth 1 -name '*.apk' -delete
+          if find scrcpy-mobile/app/build/outputs/apk/release -maxdepth 1 -name 'app-*-release.apk' | grep -q .; then
+            find scrcpy-mobile/app/build/outputs/apk/release -maxdepth 1 -name 'app-*-release.apk' | while read -r apk; do
+              name=$(basename "$apk")
+              abi=${name#app-}
+              abi=${abi%-release.apk}
+              cp -f "$apk" "scrcpy-mobile/app/build/outputs/renamed_apks/release/Screen Remote-${abi}-${VERSION_NAME}_${VERSION_CODE}.apk"
+            done
+          else
+            mkdir -p scrcpy-mobile/app/build/outputs/renamed_apks/debug
+            find scrcpy-mobile/app/build/outputs/renamed_apks/debug -maxdepth 1 -name '*.apk' -delete
+            find scrcpy-mobile/app/build/outputs/apk/debug -maxdepth 1 -name 'app-*-debug.apk' | while read -r apk; do
+              name=$(basename "$apk")
+              abi=${name#app-}
+              abi=${abi%-debug.apk}
+              cp -f "$apk" "scrcpy-mobile/app/build/outputs/renamed_apks/debug/Screen Remote-${abi}-${VERSION_NAME}_${VERSION_CODE}.apk"
+            done
+          fi
+
       - name: Upload Release APK
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v6
         with:
           name: scrcpy-mobile-release-${{ github.ref_name }}
           path: |
-            scrcpy-mobile/app/build/outputs/apk/release/*.apk
-            scrcpy-mobile/app/build/outputs/apk/debug/*.apk
+            scrcpy-mobile/app/build/outputs/renamed_apks/release/*.apk
+            scrcpy-mobile/app/build/outputs/renamed_apks/debug/*.apk
           retention-days: 90
 
   release:

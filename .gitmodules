@@ -1,6 +1,11 @@
 [submodule "external/dadb"]
 	path = external/dadb
-	url = https://github.com/mobile-dev-inc/dadb.git
+	url = git@github.com:XRSec/dadb.git
+	shallow = true
+	fetchRecurseSubmodules = false
+[submodule "external/Kadb"]
+	path = external/Kadb
+	url = https://github.com/flyfishxu/Kadb.git
 	shallow = true
 	fetchRecurseSubmodules = false
 [submodule "external/scrcpy"]
@@ -24,6 +29,11 @@
 	url = https://github.com/zwc456baby/ScrcpyForAndroid.git
 	shallow = true
 	fetchRecurseSubmodules = false
+[submodule "external/ScrcpyForAndroid-Miuzarte"]
+	path = external/ScrcpyForAndroid-Miuzarte
+	url = https://github.com/Miuzarte/ScrcpyForAndroid.git
+	shallow = true
+	fetchRecurseSubmodules = false
 
 [submodule "external/adb-mobile-ios"]
 	path = external/adb-mobile-ios
@@ -41,3 +51,4 @@
 	url = git@github.com:XRSec/scrcpy-mobile-src.git
 	shallow = true
 	fetchRecurseSubmodules = false
+

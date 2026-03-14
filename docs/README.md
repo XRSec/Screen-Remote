@@ -1,83 +1,56 @@
 # Scrcpy Mobile
 
-基于 Scrcpy 协议的 Android 设备间远程控制应用，采用现代化模块化架构。
+Scrcpy Mobile 是一个运行在 Android 设备上的远程控制应用。
 
-> 目前没空更新，可以用 kiro AI 辅助开发 [源码](https://github.com/XRSec/scrcpy-mobile-src)
+它基于 scrcpy 协议链路，把设备连接、会话配置、屏幕镜像、控制输入，以及一组常用调试工具整理进同一个
+Android 客户端里，适合做日常远控、联调和问题排查。
 
-## 预览
+## 可以做什么
 
-<p align="center">
-  <img src="assets/app-home.png" alt="app home" width="30%" />
-  <img src="assets/app-add-devices.png" alt="app add devices" width="30%" />
-  <img src="assets/app-setting.png" alt="app setting" width="30%" />
-</p>
+- 管理多台设备和多组会话配置
+- 通过 ADB、USB Host、Wireless Debugging 建立连接
+- 查看远端画面，并发送触摸、按键和输入操作
+- 查看设备信息、执行 Shell、管理应用和文件
+- 使用布局检查等辅助能力做调试
 
-## 核心特性
+## 界面预览
 
-- 🎯 Android 设备间远程控制（无需 PC）
-- 🎨 iOS 风格 UI 设计（Material 3）
-- 🌐 双语支持（中文/英文）
-- 📱 会话管理与分组
-- 🎮 多功能手势控制
-- 🔧 编解码器自定义配置
+以下截图来自当前版本的 Android 客户端。
 
-## 快速开始
+<table>
+  <tr>
+    <td align="center"><img src="./home.png" alt="会话首页"/></td>
+    <td align="center"><img src="./app.png" alt="远程控制"/></td>
+    <td align="center"><img src="./tools.png" alt="实用工具"/></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="./layout_inspector.png" alt="布局检查"/></td>
+    <td align="center"><img src="./app%20manage.png" alt="应用管理"/></td>
+    <td align="center"><img src="./file%20manage.png" alt="文件管理"/></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="./device%20info.png" alt="设备信息"/></td>
+    <td align="center"><img src="./shell%20tool.png" alt="运行命令"/></td>
+    <td></td>
+  </tr>
+</table>
 
-### 环境要求
+## 建议先看
 
-- Android Studio Hedgehog+
-- JDK 21
-- Android SDK 34
-- NDK 25.x+
-- CMake 3.22+
+如果你只是想快速了解这个项目，建议先读：
 
-### 构建项目
+- [项目定位](01-overview/project.md)
+- [能力范围](01-overview/capabilities.md)
+- [快速开始](01-overview/getting-started.md)
 
-```bash
-git clone <repository-url>
-cd scrcpy-mobile
-./gradlew assembleDebug
-```
+如果你想继续深入实现细节，可以再看：
 
-## 项目架构
+- [技术索引](TECHNICAL_INDEX.md)
+- [架构文档](02-architecture/README.md)
+- [开发指南](03-guides/README.md)
+- [分析与排障](04-analysis/README.md)
 
-采用 **Google Now in Android** 推荐的模块化架构：
+## 文档说明
 
-```
-app/              # 应用入口
-feature/          # 功能模块（会话、远程控制、设备、设置）
-infrastructure/   # 基础设施（ADB、Scrcpy、媒体）
-core/             # 核心基础（通用工具、设计系统、领域模型）
-service/          # Android 服务
-```
-
-详见 [架构文档](ARCHITECTURE.md)
-
-## 文档导航
-
-### 核心文档
-- [架构设计](ARCHITECTURE.md) - 模块化架构详解
-- [开发计划](TODO.md) - 功能规划与进度
-- [设备配对](DEVICE_PAIRING.md) - ADB 无线配对指南
-
-### 技术文档
-- [事件系统](EVENT_SYSTEM_GUIDE.md) - ScrcpyEventBus 使用指南
-- [Shell 管理](SHELL_MANAGER_GUIDE.md) - ADB Shell 命令管理
-- [事件流程](SDL_EVENT_FLOW.md) - SDL 风格事件系统架构图
-
-### 对比分析
-- [ScrcpyVS/](ScrcpyVS/) - 与其他项目的技术对比分析
-
-## 开发进度
-
-正在开发中 `60%` - 详见 [TODO.md](TODO.md)
-
-## 备忘录
-
-```regexp
-(?<!\bpackage\s)(?<!\bimport\s)com\.mobile\.scrcpy\.android\.
-```
-
-## 许可证
-
-待定
+- `docs/` 是当前主文档目录。
+- 更偏阶段记录和工程协作的内容，可以继续查看 `05-handoff/`、`06-research/` 和 `07-steering/`。

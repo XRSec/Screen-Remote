@@ -1,0 +1,2145 @@
+diff --git a/.gitignore b/.gitignore
+index 3060674..2bff224 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,3 +1,4 @@
+ .gradle
+ build
+-.idea
+\ No newline at end of file
++.idea
++local.properties
+diff --git a/README.md b/README.md
+index 7e77433..fbdefc4 100644
+--- a/README.md
++++ b/README.md
+@@ -6,7 +6,8 @@
+ 
+ <img src="https://user-images.githubusercontent.com/847683/143626125-5872bdd8-180e-48bb-a64f-47b3688a086d.png" width="700px" />
+ 
+-A Kotlin/Java library to connect directly to an Android device without an adb binary or an ADB server
++A Kotlin/Java library to connect directly to an Android device without an adb binary or an ADB server.
++The core `dadb` artifact is a JVM library. Platform-specific transports can be added separately.
+ 
+ ```kotlin
+ dependencies {
+@@ -14,7 +15,7 @@ dependencies {
+ }
+ ```
+ 
+-### Example Usage
++### Direct TCP
+ 
+ Connect to `emulator-5554` and install `apkFile`:
+ 
+@@ -26,6 +27,38 @@ Dadb.create("localhost", 5555).use { dadb ->
+ 
+ *Note: Connect to the odd adb daemon port (5555), not the even emulator console port (5554)*
+ 
++### Android USB
++
++If you are running on Android and have access to USB host APIs, add the Android transport module:
++
++```kotlin
++implementation("dev.mobile:dadb-android:<version>")
++```
++
++Then create a direct USB transport from `UsbManager` and `UsbDevice`:
++
++```kotlin
++val dadb = Dadb.create(
++    transportFactory = UsbTransportFactory(usbManager, usbDevice, "usb:${usbDevice.deviceName}"),
++    keyPair = AdbKeyPair.readDefault(),
++)
++```
++
++This transport is Android-only. Desktop JVM users should use the core `dadb` artifact with direct TCP or `adb server`.
++
++### Using adb server
++
++If you already have an `adb server` available, you can connect through it instead of providing a direct transport.
++This is useful on desktop JVM environments where physical devices are already managed by `adb`.
++
++```kotlin
++val dadb = AdbServer.createDadb(
++    adbServerHost = "localhost",
++    adbServerPort = 5037,
++    deviceQuery = "host:transport:${serialNumber}"
++)
++```
++
+ ### Discover a Device
+ 
+ The following discovers and returns a connected device or emulator. If there are multiple it returns the first one found.
+@@ -41,11 +74,7 @@ Use the following API if you want to list all available devices:
+ val dadbs = Dadb.list()
+ ```
+ 
+-### Connecting to a physical device
+-
+-*Prerequisite: Connecting to a physical device requires a running adb server. In most cases, this means that you must have the `adb` binary installed on your machine.*
+-
+-The `Dadb.discover()` and `Dadb.list()` methods now both support USB-connected devices.
++If an `adb server` is available, `Dadb.discover()` and `Dadb.list()` can also return USB-connected physical devices.
+ 
+ ```kotlin
+ // Both of these will include any USB-connected devices if they are available
+@@ -53,14 +82,23 @@ val dadb = Dadb.discover()
+ val dadbs = Dadb.list()
+ ```
+ 
+-If you'd like to connect directly to a physical device via its serial number. Use the following API:
++### Custom Transport
++
++If your ADB packets do not travel over TCP, Android USB host APIs, or `adb server`, you can still supply your own transport.
++This is useful for tunnels, in-process bridges, and other bidirectional byte streams.
+ 
+ ```kotlin
+-val dadb = AdbServer.createDadb(
+-    adbServerHost = "localhost",
+-    adbServerPort = 5037,
+-    deviceQuery = "host:transport:${serialNumber}"
+-)
++val dadb = Dadb.create(
++    description = "my transport",
++    keyPair = AdbKeyPair.readDefault(),
++) {
++    SourceSinkAdbTransport(
++        source = mySource,
++        sink = mySink,
++        description = "my transport",
++        closeable = myTransport,
++    )
++}
+ ```
+ 
+ ### Install / Uninstall APK
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 1595235..11afe30 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -1,51 +1,46 @@
+ import com.adarshr.gradle.testlogger.TestLoggerExtension
+ import com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD
++import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+ 
+-buildscript {
+-    repositories {
+-        mavenCentral()
+-    }
+-    dependencies {
+-        classpath(kotlin("gradle-plugin", "1.9.20"))
+-        classpath("com.vanniktech:gradle-maven-publish-plugin:0.33.0")
+-    }
+-}
+-
+ plugins {
+-    id("com.adarshr.test-logger") version("3.2.0") apply(true)
++    id("com.android.library") version "9.1.0" apply false
++    id("com.adarshr.test-logger") version "4.0.0" apply false
++    id("com.vanniktech.maven.publish") version "0.36.0" apply false
++    kotlin("jvm") version "2.3.20" apply false
+ }
+ 
+ allprojects {
+-    tasks.withType(JavaCompile::class.java) {
++    pluginManager.apply("com.adarshr.test-logger")
++
++    tasks.withType(JavaCompile::class.java).configureEach {
+         sourceCompatibility = JavaVersion.VERSION_17.toString()
+         targetCompatibility = JavaVersion.VERSION_17.toString()
+     }
+-    tasks.withType(KotlinCompile::class.java) {
+-        kotlinOptions {
+-            jvmTarget = JavaVersion.VERSION_17.toString()
+-            freeCompilerArgs += "-Xopt-in=kotlin.ExperimentalUnsignedTypes"
++
++    tasks.withType(KotlinCompile::class.java).configureEach {
++        compilerOptions {
++            jvmTarget.set(JvmTarget.JVM_17)
++            optIn.add("kotlin.ExperimentalUnsignedTypes")
+         }
+     }
+-    tasks.withType(Task::class) {
+-        project.apply(plugin = "com.adarshr.test-logger")
+-        project.configure<TestLoggerExtension> {
+-            theme = STANDARD
+-            showExceptions = true
+-            showStackTraces = false
+-            showFullStackTraces = false
+-            showCauses = true
+-            slowThreshold = 5000
+-            showSummary = true
+-            showSimpleNames = false
+-            showPassed = true
+-            showSkipped = true
+-            showFailed = true
+-            showOnlySlow = false
+-            showStandardStreams = false
+-            showPassedStandardStreams = false
+-            showSkippedStandardStreams = false
+-            showFailedStandardStreams = true
+-        }
++
++    configure<TestLoggerExtension> {
++        theme = STANDARD
++        showExceptions = true
++        showStackTraces = false
++        showFullStackTraces = false
++        showCauses = true
++        slowThreshold = 5000
++        showSummary = true
++        showSimpleNames = false
++        showPassed = true
++        showSkipped = true
++        showFailed = true
++        showOnlySlow = false
++        showStandardStreams = false
++        showPassedStandardStreams = false
++        showSkippedStandardStreams = false
++        showFailedStandardStreams = true
+     }
+ }
+diff --git a/dadb-android/build.gradle.kts b/dadb-android/build.gradle.kts
+new file mode 100644
+index 0000000..c1424e4
+--- /dev/null
++++ b/dadb-android/build.gradle.kts
+@@ -0,0 +1,29 @@
++plugins {
++    id("com.android.library")
++    id("com.vanniktech.maven.publish")
++}
++
++android {
++    namespace = "dadb.android"
++    compileSdk = 36
++
++    defaultConfig {
++        minSdk = 23
++    }
++
++    compileOptions {
++        sourceCompatibility = JavaVersion.VERSION_17
++        targetCompatibility = JavaVersion.VERSION_17
++    }
++}
++
++dependencies {
++    api(project(":dadb"))
++    implementation("org.bouncycastle:bcpkix-jdk18on:1.80")
++
++    testImplementation("junit:junit:4.13.2")
++}
++
++mavenPublishing {
++    publishToMavenCentral(true)
++}
+diff --git a/dadb-android/gradle.properties b/dadb-android/gradle.properties
+new file mode 100644
+index 0000000..fabc79f
+--- /dev/null
++++ b/dadb-android/gradle.properties
+@@ -0,0 +1,4 @@
++POM_NAME=dadb-android
++POM_ARTIFACT_ID=dadb-android
++POM_PACKAGING=aar
++POM_DESCRIPTION=Android USB host transport support for dadb
+diff --git a/dadb-android/src/main/AndroidManifest.xml b/dadb-android/src/main/AndroidManifest.xml
+new file mode 100644
+index 0000000..8072ee0
+--- /dev/null
++++ b/dadb-android/src/main/AndroidManifest.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest />
+diff --git a/dadb-android/src/main/kotlin/dadb/android/tls/AdbTlsContexts.kt b/dadb-android/src/main/kotlin/dadb/android/tls/AdbTlsContexts.kt
+new file mode 100644
+index 0000000..5ff9c74
+--- /dev/null
++++ b/dadb-android/src/main/kotlin/dadb/android/tls/AdbTlsContexts.kt
+@@ -0,0 +1,160 @@
++package dadb.android.tls
++
++import dadb.AdbKeyPair
++import java.io.ByteArrayInputStream
++import java.math.BigInteger
++import java.net.Socket
++import java.security.KeyFactory
++import java.security.PrivateKey
++import java.security.SecureRandom
++import java.security.cert.CertificateFactory
++import java.security.cert.X509Certificate
++import java.security.interfaces.RSAPrivateKey
++import java.security.interfaces.RSAPublicKey
++import java.security.spec.RSAPublicKeySpec
++import javax.net.ssl.SSLContext
++import javax.net.ssl.SSLEngine
++import javax.net.ssl.X509ExtendedKeyManager
++import javax.net.ssl.X509ExtendedTrustManager
++import org.bouncycastle.asn1.x500.X500Name
++import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
++import org.bouncycastle.cert.X509v3CertificateBuilder
++import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
++
++internal object AdbTlsContexts {
++    fun create(keyPair: AdbKeyPair): SSLContext {
++        val privateKey = extractPrivateKey(keyPair)
++        val certificate = createCertificate(privateKey)
++
++        return SSLContext.getInstance("TLS").apply {
++            init(
++                arrayOf(createKeyManager(privateKey, certificate)),
++                arrayOf(createTrustManager()),
++                SecureRandom(),
++            )
++        }
++    }
++
++    private fun extractPrivateKey(keyPair: AdbKeyPair): PrivateKey {
++        val field = AdbKeyPair::class.java.getDeclaredField("privateKey")
++        field.isAccessible = true
++        return field.get(keyPair) as PrivateKey
++    }
++
++    private fun createCertificate(privateKey: PrivateKey): X509Certificate {
++        val rsaPrivateKey =
++            privateKey as? RSAPrivateKey
++                ?: throw IllegalStateException("Wireless Debugging TLS requires an RSA private key")
++
++        val rsaPublicKey =
++            KeyFactory.getInstance("RSA")
++                .generatePublic(RSAPublicKeySpec(rsaPrivateKey.modulus, BigInteger.valueOf(65537L))) as RSAPublicKey
++
++        val signer = JcaContentSignerBuilder("SHA256withRSA").build(rsaPrivateKey)
++        val builder =
++            X509v3CertificateBuilder(
++                X500Name("CN=00"),
++                BigInteger.ONE,
++                java.util.Date(0),
++                java.util.Date(2_461_449_600_000L),
++                X500Name("CN=00"),
++                SubjectPublicKeyInfo.getInstance(rsaPublicKey.encoded),
++            )
++        val encoded = builder.build(signer).encoded
++
++        return CertificateFactory.getInstance("X.509")
++            .generateCertificate(ByteArrayInputStream(encoded)) as X509Certificate
++    }
++
++    private fun createKeyManager(
++        privateKey: PrivateKey,
++        certificate: X509Certificate,
++    ): X509ExtendedKeyManager =
++        object : X509ExtendedKeyManager() {
++            private val keyAlias = "adbkey"
++
++            override fun chooseClientAlias(
++                keyType: Array<out String>?,
++                issuers: Array<out java.security.Principal>?,
++                socket: Socket?,
++            ): String = keyAlias
++
++            override fun getCertificateChain(alias: String?): Array<X509Certificate>? =
++                if (alias == keyAlias) {
++                    arrayOf(certificate)
++                } else {
++                    null
++                }
++
++            override fun getPrivateKey(alias: String?): PrivateKey? =
++                if (alias == keyAlias) {
++                    privateKey
++                } else {
++                    null
++                }
++
++            override fun getClientAliases(
++                keyType: String?,
++                issuers: Array<out java.security.Principal>?,
++            ): Array<String>? = null
++
++            override fun getServerAliases(
++                keyType: String?,
++                issuers: Array<out java.security.Principal>?,
++            ): Array<String>? = null
++
++            override fun chooseServerAlias(
++                keyType: String?,
++                issuers: Array<out java.security.Principal>?,
++                socket: Socket?,
++            ): String? = null
++        }
++
++    @Suppress("CustomX509TrustManager", "TrustAllX509TrustManager")
++    private fun createTrustManager(): X509ExtendedTrustManager =
++        object : X509ExtendedTrustManager() {
++            private fun accept(
++                chain: Array<out X509Certificate>?,
++                authType: String?,
++            ) {
++                if (chain.isNullOrEmpty()) return
++                if (authType.isNullOrBlank()) return
++            }
++
++            override fun checkClientTrusted(
++                chain: Array<out X509Certificate>?,
++                authType: String?,
++                socket: Socket?,
++            ) = accept(chain, authType)
++
++            override fun checkClientTrusted(
++                chain: Array<out X509Certificate>?,
++                authType: String?,
++                engine: SSLEngine?,
++            ) = accept(chain, authType)
++
++            override fun checkClientTrusted(
++                chain: Array<out X509Certificate>?,
++                authType: String?,
++            ) = accept(chain, authType)
++
++            override fun checkServerTrusted(
++                chain: Array<out X509Certificate>?,
++                authType: String?,
++                socket: Socket?,
++            ) = accept(chain, authType)
++
++            override fun checkServerTrusted(
++                chain: Array<out X509Certificate>?,
++                authType: String?,
++                engine: SSLEngine?,
++            ) = accept(chain, authType)
++
++            override fun checkServerTrusted(
++                chain: Array<out X509Certificate>?,
++                authType: String?,
++            ) = accept(chain, authType)
++
++            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
++        }
++}
+diff --git a/dadb-android/src/main/kotlin/dadb/android/tls/TlsAdbTransportFactory.kt b/dadb-android/src/main/kotlin/dadb/android/tls/TlsAdbTransportFactory.kt
+new file mode 100644
+index 0000000..a7b354a
+--- /dev/null
++++ b/dadb-android/src/main/kotlin/dadb/android/tls/TlsAdbTransportFactory.kt
+@@ -0,0 +1,118 @@
++package dadb.android.tls
++
++import dadb.AdbKeyPair
++import dadb.AdbTransport
++import dadb.AdbTransportFactory
++import dadb.TlsUpgradableAdbTransport
++import java.net.InetSocketAddress
++import java.net.Socket
++import java.util.concurrent.atomic.AtomicBoolean
++import javax.net.ssl.SSLSocket
++import javax.net.ssl.SSLSocketFactory
++import okio.Sink
++import okio.Source
++import okio.sink
++import okio.source
++
++/**
++ * STLS-aware ADB transport for Wireless Debugging.
++ *
++ * The connection starts as a normal TCP socket. If the device responds with `A_STLS`, dadb core
++ * will request the upgrade and then call [TlsUpgradableAdbTransport.upgradeToTls] on this
++ * transport to wrap the same socket in TLS before continuing the normal ADB handshake.
++ */
++class TlsAdbTransportFactory(
++    private val host: String,
++    private val port: Int,
++    private val socketFactory: SSLSocketFactory,
++    private val connectTimeout: Int = 0,
++    private val socketTimeout: Int = 0,
++    private val configureSocket: (SSLSocket) -> Unit = {},
++) : AdbTransportFactory {
++    constructor(
++        host: String,
++        port: Int,
++        keyPair: AdbKeyPair,
++        connectTimeout: Int = 0,
++        socketTimeout: Int = 0,
++        configureSocket: (SSLSocket) -> Unit = {},
++    ) : this(
++        host = host,
++        port = port,
++        socketFactory = AdbTlsContexts.create(keyPair).socketFactory,
++        connectTimeout = connectTimeout,
++        socketTimeout = socketTimeout,
++        configureSocket = configureSocket,
++    )
++
++    override val description: String = "$host:$port"
++
++    override fun connect(): AdbTransport {
++        val socket = Socket()
++        socket.soTimeout = socketTimeout
++        socket.connect(InetSocketAddress(host, port), connectTimeout)
++        return UpgradableTlsSocketAdbTransport(
++            socket = socket,
++            host = host,
++            port = port,
++            socketFactory = socketFactory,
++            socketTimeout = socketTimeout,
++            description = description,
++            configureSocket = configureSocket,
++        )
++    }
++}
++
++private class UpgradableTlsSocketAdbTransport(
++    private val socket: Socket,
++    private val host: String,
++    private val port: Int,
++    private val socketFactory: SSLSocketFactory,
++    private val socketTimeout: Int,
++    override val description: String,
++    private val configureSocket: (SSLSocket) -> Unit,
++) : TlsUpgradableAdbTransport {
++    companion object {
++        private const val STLS_VERSION = 0x01000000
++    }
++
++    private val closed = AtomicBoolean(false)
++    private var currentSocket: Socket = socket
++    private var currentSource: Source = socket.source()
++    private var currentSink: Sink = socket.sink()
++
++    override val source: Source
++        get() = currentSource
++
++    override val sink: Sink
++        get() = currentSink
++
++    override val isClosed: Boolean
++        get() = closed.get() || currentSocket.isClosed
++
++    override fun upgradeToTls(version: Int) {
++        check(version >= STLS_VERSION) { "Unsupported STLS version: $version" }
++        val sslSocket =
++            socketFactory.createSocket(currentSocket, host, port, true) as SSLSocket
++
++        try {
++            sslSocket.useClientMode = true
++            sslSocket.soTimeout = socketTimeout
++            configureSocket(sslSocket)
++            sslSocket.startHandshake()
++            currentSocket = sslSocket
++            currentSource = sslSocket.source()
++            currentSink = sslSocket.sink()
++        } catch (t: Throwable) {
++            runCatching { sslSocket.close() }
++            throw t
++        }
++    }
++
++    override fun close() {
++        if (!closed.compareAndSet(false, true)) {
++            return
++        }
++        currentSocket.close()
++    }
++}
+diff --git a/dadb-android/src/main/kotlin/dadb/android/usb/AdbPacketCodec.kt b/dadb-android/src/main/kotlin/dadb/android/usb/AdbPacketCodec.kt
+new file mode 100644
+index 0000000..2f0c56d
+--- /dev/null
++++ b/dadb-android/src/main/kotlin/dadb/android/usb/AdbPacketCodec.kt
+@@ -0,0 +1,100 @@
++/*
++ * Copyright (c) 2021 mobile.dev inc.
++ * Android USB transport support by github.com/XRSec/
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ */
++
++package dadb.android.usb
++
++import okio.Buffer
++import java.io.IOException
++import java.nio.ByteBuffer
++import java.nio.ByteOrder
++
++internal object AdbPacketCodec {
++
++    const val HEADER_LENGTH = 24
++
++    private const val CMD_AUTH = 0x48545541
++    private const val CMD_CNXN = 0x4e584e43
++    private const val CMD_OPEN = 0x4e45504f
++    private const val CMD_OKAY = 0x59414b4f
++    private const val CMD_CLSE = 0x45534c43
++    private const val CMD_WRTE = 0x45545257
++    private const val MAX_PAYLOAD_LENGTH = 1024 * 1024
++
++    private val validCommands = setOf(
++        CMD_AUTH,
++        CMD_CNXN,
++        CMD_OPEN,
++        CMD_OKAY,
++        CMD_CLSE,
++        CMD_WRTE,
++    )
++
++    data class Header(
++        val command: Int,
++        val arg0: Int,
++        val arg1: Int,
++        val payloadLength: Int,
++        val checksum: Int,
++        val magic: Int,
++    )
++
++    @Throws(IOException::class)
++    fun parseHeader(headerBytes: ByteArray): Header {
++        require(headerBytes.size == HEADER_LENGTH) {
++            "ADB header must be $HEADER_LENGTH bytes, was ${headerBytes.size}"
++        }
++
++        val header = ByteBuffer.wrap(headerBytes).order(ByteOrder.LITTLE_ENDIAN)
++        val packetHeader = Header(
++            command = header.getInt(),
++            arg0 = header.getInt(),
++            arg1 = header.getInt(),
++            payloadLength = header.getInt(),
++            checksum = header.getInt(),
++            magic = header.getInt(),
++        )
++
++        validateHeader(packetHeader)
++        return packetHeader
++    }
++
++    @Throws(IOException::class)
++    fun completePacketLength(buffer: Buffer): Long? {
++        if (buffer.size < HEADER_LENGTH) {
++            return null
++        }
++
++        val headerBytes = buffer.copy().readByteArray(HEADER_LENGTH.toLong())
++        val header = parseHeader(headerBytes)
++        val packetLength = HEADER_LENGTH + header.payloadLength.toLong()
++        return if (buffer.size >= packetLength) packetLength else null
++    }
++
++    @Throws(IOException::class)
++    private fun validateHeader(header: Header) {
++        if (header.command !in validCommands) {
++            throw IOException("Unknown ADB command: 0x${header.command.toUInt().toString(16)}")
++        }
++        if (header.magic != (header.command xor -0x1)) {
++            throw IOException("Invalid ADB magic for command 0x${header.command.toUInt().toString(16)}: ${header.magic}")
++        }
++        if (header.payloadLength < 0 || header.payloadLength > MAX_PAYLOAD_LENGTH) {
++            throw IOException("Invalid ADB payload length: ${header.payloadLength}")
++        }
++    }
++}
+diff --git a/dadb-android/src/main/kotlin/dadb/android/usb/UsbChannel.kt b/dadb-android/src/main/kotlin/dadb/android/usb/UsbChannel.kt
+new file mode 100644
+index 0000000..1476cd7
+--- /dev/null
++++ b/dadb-android/src/main/kotlin/dadb/android/usb/UsbChannel.kt
+@@ -0,0 +1,249 @@
++/*
++ * Copyright (c) 2021 mobile.dev inc.
++ * Android USB transport support by github.com/XRSec/
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ */
++
++package dadb.android.usb
++
++import android.hardware.usb.UsbDevice
++import android.hardware.usb.UsbDeviceConnection
++import android.hardware.usb.UsbEndpoint
++import android.hardware.usb.UsbInterface
++import android.hardware.usb.UsbManager
++import java.io.IOException
++import java.nio.ByteBuffer
++import java.util.concurrent.LinkedBlockingQueue
++
++internal class UsbChannel(
++    usbManager: UsbManager,
++    private val usbDevice: UsbDevice,
++    private val maxPacketSize: Int,
++    private val writeTimeoutMs: Int,
++    private val readTimeoutMs: Int,
++    private val readIdleTimeoutMs: Int,
++) : AutoCloseable {
++
++    private val connection: UsbDeviceConnection =
++        usbManager.openDevice(usbDevice)
++            ?: throw IOException("Failed to open USB device: ${usbDevice.deviceName}")
++    private val usbInterface: UsbInterface
++    private val endpointIn: UsbEndpoint
++    private val endpointOut: UsbEndpoint
++    private val incomingChunks = LinkedBlockingQueue<ByteArray>()
++    private val readerThread = Thread(::readMessages, "dadb-usb-reader")
++
++    @Volatile
++    private var closed = false
++
++    @Volatile
++    private var readError: Throwable? = null
++
++    private var currentChunk: ByteArray? = null
++    private var currentChunkOffset = 0
++
++    init {
++        usbInterface = findAdbInterface()
++            ?: throw IOException("ADB interface not found on device: ${usbDevice.deviceName}")
++
++        if (!connection.claimInterface(usbInterface, true)) {
++            connection.close()
++            throw IOException("Failed to claim USB interface")
++        }
++
++        val endpoints = findBulkEndpoints()
++        endpointIn = endpoints.first ?: throw IOException("Bulk IN endpoint not found")
++        endpointOut = endpoints.second ?: throw IOException("Bulk OUT endpoint not found")
++
++        readerThread.start()
++    }
++
++    fun write(data: ByteArray) {
++        val buffer = ByteBuffer.wrap(data)
++        while (buffer.remaining() > 0) {
++            if (buffer.remaining() < AdbPacketCodec.HEADER_LENGTH) {
++                throw IOException("Incomplete ADB packet header: remaining=${buffer.remaining()}")
++            }
++
++            val header = ByteArray(AdbPacketCodec.HEADER_LENGTH)
++            buffer.get(header)
++            val packetHeader = AdbPacketCodec.parseHeader(header)
++            transferOut(header)
++
++            if (buffer.remaining() < packetHeader.payloadLength) {
++                throw IOException(
++                    "Incomplete ADB packet payload: required=${packetHeader.payloadLength}, remaining=${buffer.remaining()}",
++                )
++            }
++
++            if (packetHeader.payloadLength > 0) {
++                val payload = ByteArray(packetHeader.payloadLength)
++                buffer.get(payload)
++                transferOut(payload)
++            }
++        }
++    }
++
++    fun readAtMost(size: Int): ByteArray {
++        require(size > 0) { "size must be > 0" }
++
++        while (true) {
++            val chunk = currentChunk
++            if (chunk != null && currentChunkOffset < chunk.size) {
++                val copyLength = minOf(size, chunk.size - currentChunkOffset)
++                val result = chunk.copyOfRange(currentChunkOffset, currentChunkOffset + copyLength)
++                currentChunkOffset += copyLength
++                if (currentChunkOffset >= chunk.size) {
++                    currentChunk = null
++                    currentChunkOffset = 0
++                }
++                return result
++            }
++
++            val nextChunk = incomingChunks.take()
++            if (nextChunk.isEmpty()) {
++                val error = readError
++                if (error != null) {
++                    throw IOException("USB read failed: ${error.message}", error)
++                }
++                throw IOException("USB channel closed: ${usbDevice.deviceName}")
++            }
++
++            currentChunk = nextChunk
++            currentChunkOffset = 0
++        }
++    }
++
++    fun flush() = Unit
++
++    override fun close() {
++        if (closed) {
++            return
++        }
++        closed = true
++        incomingChunks.offer(ByteArray(0))
++
++        try {
++            readerThread.interrupt()
++        } catch (_: Exception) {
++        }
++
++        resetTransport()
++
++        try {
++            connection.releaseInterface(usbInterface)
++        } catch (_: Exception) {
++        }
++
++        try {
++            connection.close()
++        } catch (_: Exception) {
++        }
++    }
++
++    private fun findAdbInterface(): UsbInterface? {
++        for (index in 0 until usbDevice.interfaceCount) {
++            val usbInterface = usbDevice.getInterface(index)
++            if (UsbConstants.isAdb(usbInterface)) {
++                return usbInterface
++            }
++        }
++        return null
++    }
++
++    private fun findBulkEndpoints(): Pair<UsbEndpoint?, UsbEndpoint?> {
++        var endpointIn: UsbEndpoint? = null
++        var endpointOut: UsbEndpoint? = null
++
++        for (index in 0 until usbInterface.endpointCount) {
++            val endpoint = usbInterface.getEndpoint(index)
++            if (endpoint.type == android.hardware.usb.UsbConstants.USB_ENDPOINT_XFER_BULK) {
++                when (endpoint.direction) {
++                    android.hardware.usb.UsbConstants.USB_DIR_IN -> endpointIn = endpoint
++                    android.hardware.usb.UsbConstants.USB_DIR_OUT -> endpointOut = endpoint
++                }
++            }
++        }
++
++        return endpointIn to endpointOut
++    }
++
++    private fun transferOut(bytes: ByteArray) {
++        var offset = 0
++        while (offset < bytes.size) {
++            val chunkSize = minOf(maxPacketSize, bytes.size - offset)
++            val transferred = connection.bulkTransfer(endpointOut, bytes, offset, chunkSize, writeTimeoutMs)
++            if (transferred < 0) {
++                throw IOException("USB bulk transfer failed: $transferred")
++            }
++            if (transferred == 0) {
++                throw IOException("USB bulk transfer made no progress for ${usbDevice.deviceName}")
++            }
++            offset += transferred
++        }
++    }
++
++    private fun readMessages() {
++        try {
++            while (!closed && !Thread.currentThread().isInterrupted) {
++                val header = readExact(AdbPacketCodec.HEADER_LENGTH)
++                val packetHeader = AdbPacketCodec.parseHeader(header)
++                incomingChunks.put(header)
++                if (packetHeader.payloadLength > 0) {
++                    incomingChunks.put(readExact(packetHeader.payloadLength))
++                }
++            }
++        } catch (t: Throwable) {
++            if (!closed) {
++                readError = t
++            }
++        } finally {
++            incomingChunks.offer(ByteArray(0))
++        }
++    }
++
++    private fun readExact(length: Int): ByteArray {
++        val buffer = ByteArray(length)
++        var offset = 0
++        var lastProgressAt = System.currentTimeMillis()
++
++        while (offset < length) {
++            if (closed || Thread.currentThread().isInterrupted) {
++                throw IOException("USB channel closed while reading: ${usbDevice.deviceName}")
++            }
++
++            val transferred = connection.bulkTransfer(endpointIn, buffer, offset, length - offset, readTimeoutMs)
++            if (transferred <= 0) {
++                val idleMs = System.currentTimeMillis() - lastProgressAt
++                if (readIdleTimeoutMs > 0 && idleMs >= readIdleTimeoutMs) {
++                    throw IOException("USB read timed out waiting for ADB data from ${usbDevice.deviceName}")
++                }
++                continue
++            }
++
++            offset += transferred
++            lastProgressAt = System.currentTimeMillis()
++        }
++
++        return buffer
++    }
++
++    private fun resetTransport() {
++        try {
++            connection.bulkTransfer(endpointOut, ByteArray(100), 100, 100)
++        } catch (_: Exception) {
++        }
++    }
++}
+diff --git a/dadb-android/src/main/kotlin/dadb/android/usb/UsbConstants.kt b/dadb-android/src/main/kotlin/dadb/android/usb/UsbConstants.kt
+new file mode 100644
+index 0000000..be87152
+--- /dev/null
++++ b/dadb-android/src/main/kotlin/dadb/android/usb/UsbConstants.kt
+@@ -0,0 +1,53 @@
++/*
++ * Copyright (c) 2021 mobile.dev inc.
++ * Android USB transport support by github.com/XRSec/
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ */
++
++package dadb.android.usb
++
++import android.hardware.usb.UsbDevice
++import android.hardware.usb.UsbInterface
++
++internal object UsbConstants {
++
++    const val INTERFACE_CLASS = 0xFF
++    const val INTERFACE_SUBCLASS = 0x42
++    const val INTERFACE_PROTOCOL = 0x01
++
++    const val CONNECT_MAX_DATA = 15 * 1024
++    const val MAX_PACKET_SIZE = 16 * 1024
++    const val WRITE_TIMEOUT_MS = 5_000
++    const val READ_TIMEOUT_MS = 1_000
++    // Idle periods are expected once scrcpy sockets/server are torn down but ADB is kept alive.
++    // Real disconnects should be detected by USB detach broadcasts, transport errors, or heartbeat,
++    // not by a short "no inbound packets" timer in the background reader thread.
++    const val READ_IDLE_TIMEOUT_MS = 0
++
++    fun isAdb(device: UsbDevice): Boolean {
++        for (index in 0 until device.interfaceCount) {
++            if (isAdb(device.getInterface(index))) {
++                return true
++            }
++        }
++        return false
++    }
++
++    fun isAdb(usbInterface: UsbInterface): Boolean {
++        return usbInterface.interfaceClass == INTERFACE_CLASS &&
++            usbInterface.interfaceSubclass == INTERFACE_SUBCLASS &&
++            usbInterface.interfaceProtocol == INTERFACE_PROTOCOL
++    }
++}
+diff --git a/dadb-android/src/main/kotlin/dadb/android/usb/UsbTransportFactory.kt b/dadb-android/src/main/kotlin/dadb/android/usb/UsbTransportFactory.kt
+new file mode 100644
+index 0000000..3b5b2ee
+--- /dev/null
++++ b/dadb-android/src/main/kotlin/dadb/android/usb/UsbTransportFactory.kt
+@@ -0,0 +1,118 @@
++/*
++ * Copyright (c) 2021 mobile.dev inc.
++ * Android USB transport support by github.com/XRSec/
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ */
++
++package dadb.android.usb
++
++import android.hardware.usb.UsbDevice
++import android.hardware.usb.UsbManager
++import dadb.AdbTransport
++import dadb.AdbTransportFactory
++import dadb.SourceSinkAdbTransport
++import okio.Buffer
++import okio.Sink
++import okio.Source
++import okio.Timeout
++
++/**
++ * Android USB host transport for direct ADB connections.
++ *
++ * This implementation depends on the Android USB host APIs and is not available on
++ * desktop JVM runtimes such as Windows, macOS, or Linux.
++ */
++class UsbTransportFactory(
++    private val usbManager: UsbManager,
++    private val usbDevice: UsbDevice,
++    override val description: String = usbDevice.deviceName,
++    private val connectMaxData: Int = UsbConstants.CONNECT_MAX_DATA,
++    private val maxPacketSize: Int = UsbConstants.MAX_PACKET_SIZE,
++    private val writeTimeoutMs: Int = UsbConstants.WRITE_TIMEOUT_MS,
++    private val readTimeoutMs: Int = UsbConstants.READ_TIMEOUT_MS,
++    private val readIdleTimeoutMs: Int = UsbConstants.READ_IDLE_TIMEOUT_MS,
++) : AdbTransportFactory {
++
++    override fun connect(): AdbTransport {
++        val channel = UsbChannel(
++            usbManager = usbManager,
++            usbDevice = usbDevice,
++            maxPacketSize = maxPacketSize,
++            writeTimeoutMs = writeTimeoutMs,
++            readTimeoutMs = readTimeoutMs,
++            readIdleTimeoutMs = readIdleTimeoutMs,
++        )
++        return SourceSinkAdbTransport(
++            source = UsbSource(channel, maxPacketSize),
++            sink = UsbSink(channel),
++            description = description,
++            connectMaxData = connectMaxData,
++            closeable = channel,
++        )
++    }
++}
++
++private class UsbSource(
++    private val channel: UsbChannel,
++    private val maxPacketSize: Int,
++) : Source {
++
++    override fun read(sink: Buffer, byteCount: Long): Long {
++        if (byteCount == 0L) {
++            return 0L
++        }
++
++        val chunk = channel.readAtMost(minOf(byteCount, maxPacketSize.toLong()).toInt())
++        sink.write(chunk)
++        return chunk.size.toLong()
++    }
++
++    override fun timeout(): Timeout = Timeout.NONE
++
++    override fun close() = Unit
++}
++
++private class UsbSink(
++    private val channel: UsbChannel,
++) : Sink {
++
++    private val pending = Buffer()
++
++    override fun write(source: Buffer, byteCount: Long) {
++        require(byteCount <= Int.MAX_VALUE) { "byteCount too large: $byteCount" }
++        pending.write(source, byteCount)
++        emitCompletePackets()
++    }
++
++    override fun flush() {
++        emitCompletePackets()
++        channel.flush()
++    }
++
++    override fun timeout(): Timeout = Timeout.NONE
++
++    override fun close() = Unit
++
++    private fun emitCompletePackets() {
++        while (true) {
++            val packetLength = AdbPacketCodec.completePacketLength(pending) ?: return
++            if (pending.size < packetLength) {
++                return
++            }
++
++            channel.write(pending.readByteArray(packetLength))
++        }
++    }
++}
+diff --git a/dadb-android/src/main/kotlin/dadb/android/wireless/WirelessDebugPairing.kt b/dadb-android/src/main/kotlin/dadb/android/wireless/WirelessDebugPairing.kt
+new file mode 100644
+index 0000000..6c1addc
+--- /dev/null
++++ b/dadb-android/src/main/kotlin/dadb/android/wireless/WirelessDebugPairing.kt
+@@ -0,0 +1,232 @@
++package dadb.android.wireless
++
++import dadb.AdbKeyPair
++import dadb.android.tls.AdbTlsContexts
++import java.io.DataInputStream
++import java.io.DataOutputStream
++import java.net.InetSocketAddress
++import java.net.Socket
++import java.nio.ByteBuffer
++import java.nio.ByteOrder
++import javax.net.ssl.SSLSocket
++
++/**
++ * Stable app-facing contract for Wireless Debugging pairing.
++ *
++ * The current implementation keeps parity with the old app-side experimental flow so the pairing
++ * logic can live under `external/dadb`. A future native SPAKE2-backed implementation can replace
++ * [ExperimentalWirelessDebugPairingClient] without changing callers.
++ */
++interface WirelessDebugPairingClient {
++    fun pair(request: WirelessDebugPairingRequest): Result<WirelessDebugPairingResult>
++}
++
++data class WirelessDebugPairingRequest(
++    val host: String,
++    val port: Int,
++    val pairingCode: String,
++)
++
++data class WirelessDebugPairingResult(
++    val host: String,
++    val port: Int,
++    val peerPublicKey: ByteArray? = null,
++)
++
++/**
++ * Temporary pairing client migrated out of the app layer.
++ *
++ * This preserves the existing experimental flow while making the `dadb-android` module the
++ * single place that owns Wireless Debugging transport and wire protocol glue.
++ */
++class ExperimentalWirelessDebugPairingClient(
++    private val keyPair: AdbKeyPair,
++    private val tlsSocketFactory: WirelessDebugTlsSocketFactory = WirelessDebugTlsSocketFactory(keyPair),
++) : WirelessDebugPairingClient {
++    override fun pair(request: WirelessDebugPairingRequest): Result<WirelessDebugPairingResult> {
++        var socket: Socket? = null
++        var sslSocket: SSLSocket? = null
++
++        return runCatching {
++            val connectedSocket =
++                Socket().also { raw ->
++                raw.connect(InetSocketAddress(request.host, request.port), CONNECT_TIMEOUT_MS)
++                }
++            socket = connectedSocket
++
++            val connectedTlsSocket = tlsSocketFactory.create(connectedSocket, request.host, request.port)
++            sslSocket = connectedTlsSocket
++
++            val streams =
++                PairingStreams(
++                    input = DataInputStream(connectedTlsSocket.inputStream),
++                    output = DataOutputStream(connectedTlsSocket.outputStream),
++                )
++            val protocol = ExperimentalWirelessDebugPairingProtocol(keyPair.adbPublicKey())
++
++            protocol.sendPeerInfo(streams.output)
++            val peerInfo = protocol.receivePeerInfo(streams.input)
++            protocol.sendPairingRequest(streams.output, request.pairingCode)
++
++            val response = protocol.receivePairingResponse(streams.input)
++            if (response.status != ExperimentalWirelessDebugPairingProtocol.STATUS_SUCCESS) {
++                throw IllegalStateException("Wireless Debugging pairing failed: status=${response.status}")
++            }
++
++            WirelessDebugPairingResult(
++                host = request.host,
++                port = request.port,
++                peerPublicKey = peerInfo.publicKey,
++            )
++        }.also {
++            runCatching { sslSocket?.close() }
++            runCatching { socket?.close() }
++        }
++    }
++
++    companion object {
++        private const val CONNECT_TIMEOUT_MS = 5000
++    }
++}
++
++class WirelessDebugTlsSocketFactory(
++    keyPair: AdbKeyPair,
++) {
++    private val sslSocketFactory = AdbTlsContexts.create(keyPair).socketFactory
++
++    fun create(
++        socket: Socket,
++        host: String,
++        port: Int,
++    ): SSLSocket =
++        (sslSocketFactory.createSocket(socket, host, port, true) as SSLSocket).also {
++            it.useClientMode = true
++            it.startHandshake()
++        }
++}
++
++private class ExperimentalWirelessDebugPairingProtocol(
++    private val adbPublicKey: ByteArray,
++) {
++    fun sendPeerInfo(output: DataOutputStream) {
++        val payload =
++            ByteBuffer
++                .allocate(4 + adbPublicKey.size)
++                .order(ByteOrder.LITTLE_ENDIAN)
++                .putInt(adbPublicKey.size)
++                .put(adbPublicKey)
++                .array()
++
++        sendPacket(output, MSG_PEER_INFO, payload)
++    }
++
++    fun receivePeerInfo(input: DataInputStream): PeerInfo {
++        val packet = receivePacket(input)
++        if (packet.type != MSG_PEER_INFO) {
++            throw IllegalStateException("Expected PEER_INFO, got ${packet.type}")
++        }
++
++        val buffer = ByteBuffer.wrap(packet.payload).order(ByteOrder.LITTLE_ENDIAN)
++        val publicKeySize = buffer.int
++        if (publicKeySize !in 0..packet.payload.size - 4) {
++            throw IllegalStateException("Invalid peer public key size: $publicKeySize")
++        }
++        val publicKey = ByteArray(publicKeySize)
++        buffer.get(publicKey)
++        return PeerInfo(publicKey)
++    }
++
++    fun sendPairingRequest(
++        output: DataOutputStream,
++        pairingCode: String,
++    ) {
++        val codeBytes = pairingCode.toByteArray(Charsets.UTF_8)
++        val payload =
++            ByteBuffer
++                .allocate(4 + codeBytes.size)
++                .order(ByteOrder.LITTLE_ENDIAN)
++                .putInt(codeBytes.size)
++                .put(codeBytes)
++                .array()
++
++        sendPacket(output, MSG_PAIRING_REQUEST, payload)
++    }
++
++    fun receivePairingResponse(input: DataInputStream): PairingResponse {
++        val packet = receivePacket(input)
++        if (packet.type != MSG_PAIRING_RESPONSE) {
++            throw IllegalStateException("Expected PAIRING_RESPONSE, got ${packet.type}")
++        }
++
++        val buffer = ByteBuffer.wrap(packet.payload).order(ByteOrder.LITTLE_ENDIAN)
++        return PairingResponse(status = buffer.int)
++    }
++
++    private fun sendPacket(
++        output: DataOutputStream,
++        type: Int,
++        payload: ByteArray,
++    ) {
++        val header =
++            ByteBuffer
++                .allocate(PAIRING_PACKET_HEADER_SIZE)
++                .order(ByteOrder.LITTLE_ENDIAN)
++                .put(type.toByte())
++                .put(0.toByte())
++                .putInt(payload.size)
++                .array()
++
++        output.write(header)
++        output.write(payload)
++        output.flush()
++    }
++
++    private fun receivePacket(input: DataInputStream): Packet {
++        val header = ByteArray(PAIRING_PACKET_HEADER_SIZE)
++        input.readFully(header)
++
++        val buffer = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN)
++        val type = buffer.get().toInt()
++        buffer.get()
++        val payloadSize = buffer.int
++
++        if (payloadSize !in 0..PAIRING_PACKET_MAX_PAYLOAD_SIZE) {
++            throw IllegalStateException("Invalid payload size: $payloadSize")
++        }
++
++        val payload = ByteArray(payloadSize)
++        if (payloadSize > 0) {
++            input.readFully(payload)
++        }
++
++        return Packet(type = type, payload = payload)
++    }
++
++    companion object {
++        private const val PAIRING_PACKET_HEADER_SIZE = 6
++        private const val PAIRING_PACKET_MAX_PAYLOAD_SIZE = 2048
++        private const val MSG_PEER_INFO = 0
++        private const val MSG_PAIRING_REQUEST = 1
++        private const val MSG_PAIRING_RESPONSE = 2
++
++        const val STATUS_SUCCESS = 0
++    }
++}
++
++private data class PairingStreams(
++    val input: DataInputStream,
++    val output: DataOutputStream,
++)
++
++private data class Packet(
++    val type: Int,
++    val payload: ByteArray,
++)
++
++data class PeerInfo(
++    val publicKey: ByteArray,
++)
++
++data class PairingResponse(
++    val status: Int,
++)
+diff --git a/dadb-android/src/test/kotlin/dadb/android/usb/AdbPacketCodecTest.kt b/dadb-android/src/test/kotlin/dadb/android/usb/AdbPacketCodecTest.kt
+new file mode 100644
+index 0000000..ad7fc31
+--- /dev/null
++++ b/dadb-android/src/test/kotlin/dadb/android/usb/AdbPacketCodecTest.kt
+@@ -0,0 +1,87 @@
++/*
++ * Copyright (c) 2021 mobile.dev inc.
++ * Android USB transport support by github.com/XRSec/
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ */
++
++package dadb.android.usb
++
++import okio.Buffer
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertNull
++import org.junit.Assert.assertThrows
++import org.junit.Test
++import java.io.IOException
++import java.nio.ByteBuffer
++import java.nio.ByteOrder
++
++class AdbPacketCodecTest {
++
++    @Test
++    fun completePacketLength_partialPacket() {
++        val packet = buildPacket(command = 0x45545257, arg0 = 1, arg1 = 2, payload = "hello".toByteArray())
++        val pending = Buffer()
++
++        pending.write(packet, 0, AdbPacketCodec.HEADER_LENGTH - 1)
++        assertNull(AdbPacketCodec.completePacketLength(pending))
++
++        pending.write(packet, AdbPacketCodec.HEADER_LENGTH - 1, 1)
++        assertNull(AdbPacketCodec.completePacketLength(pending))
++
++        pending.write(packet, AdbPacketCodec.HEADER_LENGTH, packet.size - AdbPacketCodec.HEADER_LENGTH)
++        assertEquals(packet.size.toLong(), AdbPacketCodec.completePacketLength(pending))
++    }
++
++    @Test
++    fun completePacketLength_multiplePackets() {
++        val firstPacket = buildPacket(command = 0x4e45504f, arg0 = 7, arg1 = 0, payload = "shell,v2,raw:echo one\u0000".toByteArray())
++        val secondPacket = buildPacket(command = 0x45545257, arg0 = 7, arg1 = 8, payload = "two".toByteArray())
++        val pending = Buffer().write(firstPacket).write(secondPacket)
++
++        val firstLength = AdbPacketCodec.completePacketLength(pending)
++        assertEquals(firstPacket.size.toLong(), firstLength)
++        assertEquals(firstPacket.size.toLong(), pending.readByteArray(firstLength!!).size.toLong())
++
++        val secondLength = AdbPacketCodec.completePacketLength(pending)
++        assertEquals(secondPacket.size.toLong(), secondLength)
++    }
++
++    @Test
++    fun parseHeader_invalidMagic() {
++        val header = buildPacket(command = 0x59414b4f, arg0 = 11, arg1 = 22, payload = ByteArray(0)).copyOf(AdbPacketCodec.HEADER_LENGTH)
++        ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN).putInt(20, 0)
++
++        assertThrows(IOException::class.java) {
++            AdbPacketCodec.parseHeader(header)
++        }
++    }
++
++    private fun buildPacket(
++        command: Int,
++        arg0: Int,
++        arg1: Int,
++        payload: ByteArray,
++    ): ByteArray {
++        val buffer = ByteBuffer.allocate(AdbPacketCodec.HEADER_LENGTH + payload.size).order(ByteOrder.LITTLE_ENDIAN)
++        buffer.putInt(command)
++        buffer.putInt(arg0)
++        buffer.putInt(arg1)
++        buffer.putInt(payload.size)
++        buffer.putInt(payload.sumOf { it.toUByte().toInt() })
++        buffer.putInt(command xor -0x1)
++        buffer.put(payload)
++        return buffer.array()
++    }
++}
+diff --git a/dadb/build.gradle.kts b/dadb/build.gradle.kts
+index 0d0158b..a098e4e 100644
+--- a/dadb/build.gradle.kts
++++ b/dadb/build.gradle.kts
+@@ -1,5 +1,3 @@
+-import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector
+-
+ plugins {
+     `maven-publish`
+     id("org.jetbrains.kotlin.jvm")
+@@ -12,20 +10,18 @@ repositories {
+ }
+ 
+ dependencies {
+-    api("com.squareup.okio:okio:2.10.0")
++    api("com.squareup.okio:okio:3.17.0")
+     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+ 
+     testImplementation("org.jetbrains.kotlin:kotlin-test")
+-    testImplementation("com.google.truth:truth:1.0.1")
++    testImplementation("com.google.truth:truth:1.4.5")
+ }
+ 
+-val metadataDetector = objects.newInstance(DefaultJvmMetadataDetector::class.java)
+-
+ tasks.test {
+     useJUnitPlatform()
+ }
+ 
+ mavenPublishing {
+     publishToMavenCentral(true)
+-}
+\ No newline at end of file
++}
+diff --git a/dadb/src/main/kotlin/dadb/AdbConnection.kt b/dadb/src/main/kotlin/dadb/AdbConnection.kt
+index 57cd17e..5c29adb 100644
+--- a/dadb/src/main/kotlin/dadb/AdbConnection.kt
++++ b/dadb/src/main/kotlin/dadb/AdbConnection.kt
+@@ -22,7 +22,6 @@ import okio.Source
+ import okio.sink
+ import okio.source
+ import org.jetbrains.annotations.TestOnly
+-import java.io.Closeable
+ import java.io.IOException
+ import java.net.Socket
+ import java.util.*
+@@ -30,7 +29,7 @@ import java.util.*
+ internal class AdbConnection internal constructor(
+         adbReader: AdbReader,
+         private val adbWriter: AdbWriter,
+-        private val closeable: Closeable?,
++        private val closeable: AutoCloseable?,
+         private val supportedFeatures: Set<String>,
+         private val version: Int,
+         private val maxPayloadSize: Int
+@@ -83,12 +82,30 @@ internal class AdbConnection internal constructor(
+             return connect(source, sink, keyPair, socket)
+         }
+ 
+-        private fun connect(source: Source, sink: Sink, keyPair: AdbKeyPair? = null, closeable: Closeable? = null): AdbConnection {
++        fun connect(transport: AdbTransport, keyPair: AdbKeyPair? = null): AdbConnection {
++            return connect(
++                transport.source,
++                transport.sink,
++                keyPair,
++                closeable = transport,
++                connectMaxData = transport.connectMaxData,
++                tlsUpgradableTransport = transport as? TlsUpgradableAdbTransport,
++            )
++        }
++
++        private fun connect(
++            source: Source,
++            sink: Sink,
++            keyPair: AdbKeyPair? = null,
++            closeable: AutoCloseable? = null,
++            connectMaxData: Int = Constants.CONNECT_MAXDATA,
++            tlsUpgradableTransport: TlsUpgradableAdbTransport? = null,
++        ): AdbConnection {
+             val adbReader = AdbReader(source)
+             val adbWriter = AdbWriter(sink)
+ 
+             try {
+-                return connect(adbReader, adbWriter, keyPair, closeable)
++                return connect(adbReader, adbWriter, keyPair, closeable, connectMaxData, tlsUpgradableTransport)
+             } catch (t: Throwable) {
+                 adbReader.close()
+                 adbWriter.close()
+@@ -96,22 +113,42 @@ internal class AdbConnection internal constructor(
+             }
+         }
+ 
+-        private fun connect(adbReader: AdbReader, adbWriter: AdbWriter, keyPair: AdbKeyPair?, closeable: Closeable?): AdbConnection {
+-            adbWriter.writeConnect()
+-
+-            var message = adbReader.readMessage()
++        private fun connect(
++            adbReader: AdbReader,
++            adbWriter: AdbWriter,
++            keyPair: AdbKeyPair?,
++            closeable: AutoCloseable?,
++            connectMaxData: Int,
++            tlsUpgradableTransport: TlsUpgradableAdbTransport?,
++        ): AdbConnection {
++            var currentReader = adbReader
++            var currentWriter = adbWriter
++            currentWriter.writeConnect(connectMaxData)
++
++            var message = currentReader.readMessage()
++
++            if (message.command == Constants.CMD_STLS) {
++                checkNotNull(tlsUpgradableTransport) {
++                    "TLS upgrade requested by device, but transport does not support STLS/TLS upgrade"
++                }
++                currentWriter.writeStls(message.arg0)
++                tlsUpgradableTransport.upgradeToTls(message.arg0)
++                currentReader = AdbReader(tlsUpgradableTransport.source)
++                currentWriter = AdbWriter(tlsUpgradableTransport.sink)
++                message = currentReader.readMessage()
++            }
+ 
+             if (message.command == Constants.CMD_AUTH) {
+                 checkNotNull(keyPair) { "Authentication required but no KeyPair provided" }
+                 check(message.arg0 == Constants.AUTH_TYPE_TOKEN) { "Unsupported auth type: $message" }
+ 
+                 val signature = keyPair.signPayload(message)
+-                adbWriter.writeAuth(Constants.AUTH_TYPE_SIGNATURE, signature)
++                currentWriter.writeAuth(Constants.AUTH_TYPE_SIGNATURE, signature)
+ 
+-                message = adbReader.readMessage()
++                message = currentReader.readMessage()
+                 if (message.command == Constants.CMD_AUTH) {
+-                    adbWriter.writeAuth(Constants.AUTH_TYPE_RSA_PUBLIC, keyPair.publicKeyBytes)
+-                    message = adbReader.readMessage()
++                    currentWriter.writeAuth(Constants.AUTH_TYPE_RSA_PUBLIC, keyPair.publicKeyBytes)
++                    message = currentReader.readMessage()
+                 }
+             }
+ 
+@@ -121,7 +158,7 @@ internal class AdbConnection internal constructor(
+             val version = message.arg0
+             val maxPayloadSize = message.arg1
+ 
+-            return AdbConnection(adbReader, adbWriter, closeable, connectionString.features, version, maxPayloadSize)
++            return AdbConnection(currentReader, currentWriter, closeable, connectionString.features, version, maxPayloadSize)
+         }
+ 
+         // ie: "device::ro.product.name=sdk_gphone_x86;ro.product.model=Android SDK built for x86;ro.product.device=generic_x86;features=fixed_push_symlink_timestamp,apex,fixed_push_mkdir,stat_v2,abb_exec,cmd,abb,shell_v2"
+@@ -138,4 +175,4 @@ internal class AdbConnection internal constructor(
+     }
+ }
+ 
+-private data class ConnectionString(val features: Set<String>)
+\ No newline at end of file
++private data class ConnectionString(val features: Set<String>)
+diff --git a/dadb/src/main/kotlin/dadb/AdbKeyPair.kt b/dadb/src/main/kotlin/dadb/AdbKeyPair.kt
+index 93d99a4..7cb4004 100644
+--- a/dadb/src/main/kotlin/dadb/AdbKeyPair.kt
++++ b/dadb/src/main/kotlin/dadb/AdbKeyPair.kt
+@@ -33,6 +33,14 @@ class AdbKeyPair(
+         internal val publicKeyBytes: ByteArray
+ ) {
+ 
++    /**
++     * Returns the RSA public key in Android ADB wire format, including the trailing NUL byte.
++     *
++     * Exposing this avoids reflection for higher-level pairing and wireless-debugging helpers
++     * that need to send PEER_INFO without leaking the private key.
++     */
++    fun adbPublicKey(): ByteArray = publicKeyBytes.copyOf()
++
+     internal fun signPayload(message: AdbMessage): ByteArray {
+         val cipher = Cipher.getInstance("RSA/ECB/NoPadding")
+         cipher.init(Cipher.ENCRYPT_MODE, privateKey)
+diff --git a/dadb/src/main/kotlin/dadb/AdbMessage.kt b/dadb/src/main/kotlin/dadb/AdbMessage.kt
+index 6a8cfd7..e44eec6 100644
+--- a/dadb/src/main/kotlin/dadb/AdbMessage.kt
++++ b/dadb/src/main/kotlin/dadb/AdbMessage.kt
+@@ -80,6 +80,7 @@ internal class AdbMessage(
+     private fun commandStr() = when (command) {
+         Constants.CMD_AUTH -> "AUTH";
+         Constants.CMD_CNXN -> "CNXN";
++        Constants.CMD_STLS -> "STLS";
+         Constants.CMD_OPEN -> "OPEN";
+         Constants.CMD_OKAY -> "OKAY";
+         Constants.CMD_CLSE -> "CLSE";
+diff --git a/dadb/src/main/kotlin/dadb/AdbTransport.kt b/dadb/src/main/kotlin/dadb/AdbTransport.kt
+new file mode 100644
+index 0000000..07d6592
+--- /dev/null
++++ b/dadb/src/main/kotlin/dadb/AdbTransport.kt
+@@ -0,0 +1,88 @@
++/*
++ * Copyright (c) 2021 mobile.dev inc.
++ * Additional transport support by github.com/XRSec/
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ */
++
++package dadb
++
++import okio.Sink
++import okio.Source
++import java.io.IOException
++import java.util.concurrent.atomic.AtomicBoolean
++
++/**
++ * A low-level transport carrying raw ADB packets.
++ *
++ * Socket is the default implementation, but callers can provide transports backed by
++ * platform-specific APIs, tunnels, in-process bridges, or any other bidirectional channel.
++ */
++interface AdbTransport : AutoCloseable {
++
++    val source: Source
++
++    val sink: Sink
++
++    val connectMaxData: Int
++        get() = Constants.CONNECT_MAXDATA
++
++    val isClosed: Boolean
++
++    val description: String
++        get() = javaClass.name
++}
++
++/**
++ * A transport that can upgrade the current raw socket/channel to TLS in-place after `A_STLS`.
++ *
++ * Wireless Debugging on modern Android starts as plain ADB, negotiates `A_STLS`, then upgrades
++ * the same underlying connection to TLS before continuing with normal ADB auth/CNXN messages.
++ */
++interface TlsUpgradableAdbTransport : AdbTransport {
++    @Throws(IOException::class)
++    fun upgradeToTls(version: Int = Constants.STLS_VERSION)
++}
++
++fun interface AdbTransportFactory {
++
++    val description: String
++        get() = javaClass.name
++
++    @Throws(IOException::class)
++    fun connect(): AdbTransport
++}
++
++/**
++ * A transport backed by an existing okio [Source] and [Sink].
++ */
++class SourceSinkAdbTransport(
++    override val source: Source,
++    override val sink: Sink,
++    override val description: String,
++    override val connectMaxData: Int = Constants.CONNECT_MAXDATA,
++    private val closeable: AutoCloseable? = null,
++) : AdbTransport {
++    private val closed = AtomicBoolean(false)
++
++    override val isClosed: Boolean
++        get() = closed.get()
++
++    override fun close() {
++        if (!closed.compareAndSet(false, true)) {
++            return
++        }
++        closeable?.close()
++    }
++}
+diff --git a/dadb/src/main/kotlin/dadb/AdbWriter.kt b/dadb/src/main/kotlin/dadb/AdbWriter.kt
+index ef5dbcf..cc32c85 100644
+--- a/dadb/src/main/kotlin/dadb/AdbWriter.kt
++++ b/dadb/src/main/kotlin/dadb/AdbWriter.kt
+@@ -25,10 +25,10 @@ internal class AdbWriter(sink: Sink) : AutoCloseable {
+ 
+     private val bufferedSink = sink.buffer()
+ 
+-    fun writeConnect() = write(
++    fun writeConnect(maxData: Int = Constants.CONNECT_MAXDATA) = write(
+             Constants.CMD_CNXN,
+             Constants.CONNECT_VERSION,
+-            Constants.CONNECT_MAXDATA,
++            maxData,
+             Constants.CONNECT_PAYLOAD,
+             0,
+             Constants.CONNECT_PAYLOAD.size
+@@ -43,6 +43,15 @@ internal class AdbWriter(sink: Sink) : AutoCloseable {
+             authPayload.size
+     )
+ 
++    fun writeStls(version: Int = Constants.STLS_VERSION) = write(
++            Constants.CMD_STLS,
++            version,
++            0,
++            null,
++            0,
++            0
++    )
++
+     fun writeOpen(localId: Int, destination: String) {
+         val destinationBytes = destination.toByteArray()
+         val buffer = ByteBuffer.allocate(destinationBytes.size + 1)
+@@ -108,4 +117,4 @@ internal class AdbWriter(sink: Sink) : AutoCloseable {
+             return checksum
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/dadb/src/main/kotlin/dadb/Constants.kt b/dadb/src/main/kotlin/dadb/Constants.kt
+index ecd4deb..a9861fa 100644
+--- a/dadb/src/main/kotlin/dadb/Constants.kt
++++ b/dadb/src/main/kotlin/dadb/Constants.kt
+@@ -25,6 +25,7 @@ internal object Constants {
+ 
+     const val CMD_AUTH = 0x48545541
+     const val CMD_CNXN = 0x4e584e43
++    const val CMD_STLS = 0x534c5453
+     const val CMD_OPEN = 0x4e45504f
+     const val CMD_OKAY = 0x59414b4f
+     const val CMD_CLSE = 0x45534c43
+@@ -32,6 +33,7 @@ internal object Constants {
+ 
+     const val CONNECT_VERSION = 0x01000000
+     const val CONNECT_MAXDATA = 1024 * 1024
++    const val STLS_VERSION = 0x01000000
+ 
+     val CONNECT_PAYLOAD = "host::\u0000".toByteArray()
+ }
+diff --git a/dadb/src/main/kotlin/dadb/Dadb.kt b/dadb/src/main/kotlin/dadb/Dadb.kt
+index afe8524..3b250f5 100644
+--- a/dadb/src/main/kotlin/dadb/Dadb.kt
++++ b/dadb/src/main/kotlin/dadb/Dadb.kt
+@@ -255,6 +255,22 @@ interface Dadb : AutoCloseable {
+         @JvmOverloads
+         fun create(host: String, port: Int, keyPair: AdbKeyPair? = AdbKeyPair.readDefault(), connectTimeout: Int = 0, socketTimeout: Int = 0, keepAlive: Boolean = false): Dadb = DadbImpl(host, port, keyPair, connectTimeout, socketTimeout, keepAlive = keepAlive)
+ 
++        @JvmStatic
++        @JvmOverloads
++        fun create(transportFactory: AdbTransportFactory, keyPair: AdbKeyPair? = AdbKeyPair.readDefault()): Dadb = DadbImpl(transportFactory = transportFactory, keyPair = keyPair)
++
++        @JvmStatic
++        @JvmOverloads
++        fun create(description: String, keyPair: AdbKeyPair? = AdbKeyPair.readDefault(), connector: () -> AdbTransport): Dadb {
++            val transportFactory =
++                object : AdbTransportFactory {
++                    override val description = description
++
++                    override fun connect(): AdbTransport = connector()
++                }
++            return DadbImpl(transportFactory = transportFactory, keyPair = keyPair)
++        }
++
+         @JvmStatic
+         @JvmOverloads
+         fun discover(host: String = "localhost", keyPair: AdbKeyPair? = AdbKeyPair.readDefault(), connectTimeout: Int = 0, socketTimeout: Int = 0, keepAlive: Boolean = false): Dadb? {
+@@ -296,7 +312,7 @@ interface Dadb : AutoCloseable {
+ 
+         private fun restartAdb(dadb: Dadb, destination: String): String {
+             dadb.open(destination).use { stream ->
+-                return stream.source.readUntil('\n'.toByte()).readString(Charsets.UTF_8)
++                return stream.source.readUntil('\n'.code.toByte()).readString(Charsets.UTF_8)
+             }
+         }
+ 
+diff --git a/dadb/src/main/kotlin/dadb/DadbImpl.kt b/dadb/src/main/kotlin/dadb/DadbImpl.kt
+index f2b1b33..4e53fbb 100644
+--- a/dadb/src/main/kotlin/dadb/DadbImpl.kt
++++ b/dadb/src/main/kotlin/dadb/DadbImpl.kt
+@@ -17,6 +17,8 @@
+ 
+ package dadb
+ 
++import okio.sink
++import okio.source
+ import org.jetbrains.annotations.TestOnly
+ import java.net.InetSocketAddress
+ import java.net.Socket
+@@ -24,16 +26,32 @@ import kotlin.jvm.Throws
+ 
+ 
+ internal class DadbImpl @Throws(IllegalArgumentException::class) constructor(
+-        private val host: String,
+-        private val port: Int,
++        private val description: String,
++        private val transportFactory: AdbTransportFactory,
+         private val keyPair: AdbKeyPair? = null,
+-        private val connectTimeout: Int = 0,
+-        private val socketTimeout: Int = 0,
+-        private val keepAlive: Boolean = false,
+ ) : Dadb {
+ 
+-    init {
+-
++    internal constructor(
++        transportFactory: AdbTransportFactory,
++        keyPair: AdbKeyPair? = null,
++    ) : this(
++        description = transportFactory.description,
++        transportFactory = transportFactory,
++        keyPair = keyPair,
++    )
++
++    internal constructor(
++        host: String,
++        port: Int,
++        keyPair: AdbKeyPair? = null,
++        connectTimeout: Int = 0,
++        socketTimeout: Int = 0,
++        keepAlive: Boolean = false,
++    ) : this(
++        description = "$host:$port",
++        transportFactory = SocketAdbTransportFactory(host, port, connectTimeout, socketTimeout, keepAlive),
++        keyPair = keyPair,
++    ) {
+         if (port < 0) {
+             throw IllegalArgumentException("port must be >= 0")
+         }
+@@ -45,11 +63,9 @@ internal class DadbImpl @Throws(IllegalArgumentException::class) constructor(
+         if (socketTimeout < 0) {
+             throw IllegalArgumentException("socketTimeout must be >= 0")
+         }
+-
+     }
+ 
+-
+-    private var connection: Pair<AdbConnection, Socket>? = null
++    private var connection: Pair<AdbConnection, AdbTransport>? = null
+ 
+     override fun open(destination: String) = connection().open(destination)
+ 
+@@ -60,7 +76,7 @@ internal class DadbImpl @Throws(IllegalArgumentException::class) constructor(
+     override fun close() {
+         connection?.first?.close()
+     }
+-    override fun toString() = "$host:$port"
++    override fun toString() = description
+ 
+     @TestOnly
+     fun closeConnection() {
+@@ -77,15 +93,45 @@ internal class DadbImpl @Throws(IllegalArgumentException::class) constructor(
+         return connection.first
+     }
+ 
+-    private fun newConnection(): Pair<AdbConnection, Socket> {
+-        val socketAddress = InetSocketAddress(host, port)
+-        val socket = Socket()
+-        socket.soTimeout = socketTimeout
+-        socket.connect(socketAddress, connectTimeout)
+-        if (keepAlive) {
+-            socket.keepAlive = true
++    private fun newConnection(): Pair<AdbConnection, AdbTransport> {
++        val transport = transportFactory.connect()
++        val adbConnection = AdbConnection.connect(transport, keyPair)
++        return adbConnection to transport
++    }
++
++    private class SocketAdbTransportFactory(
++        private val host: String,
++        private val port: Int,
++        private val connectTimeout: Int,
++        private val socketTimeout: Int,
++        private val keepAlive: Boolean,
++    ) : AdbTransportFactory {
++        override val description: String = "$host:$port"
++
++        override fun connect(): AdbTransport {
++            val socketAddress = InetSocketAddress(host, port)
++            val socket = Socket()
++            socket.soTimeout = socketTimeout
++            socket.connect(socketAddress, connectTimeout)
++            if (keepAlive) {
++                socket.keepAlive = true
++            }
++            return SocketAdbTransport(socket, description)
++        }
++    }
++
++    private class SocketAdbTransport(
++        private val socket: Socket,
++        override val description: String,
++    ) : AdbTransport {
++        override val source = socket.source()
++        override val sink = socket.sink()
++        override val isClosed: Boolean
++            get() = socket.isClosed
++
++        override fun close() {
++            socket.close()
+         }
+-        val adbConnection = AdbConnection.connect(socket, keyPair)
+-        return adbConnection to socket
+     }
++
+ }
+diff --git a/dadb/src/test/kotlin/dadb/AdbConnectionTransportTest.kt b/dadb/src/test/kotlin/dadb/AdbConnectionTransportTest.kt
+new file mode 100644
+index 0000000..eaff258
+--- /dev/null
++++ b/dadb/src/test/kotlin/dadb/AdbConnectionTransportTest.kt
+@@ -0,0 +1,133 @@
++/*
++ * Copyright (c) 2021 mobile.dev inc.
++ * Additional transport support by github.com/XRSec/
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ */
++
++package dadb
++
++import com.google.common.truth.Truth.assertThat
++import okio.Buffer
++import okio.Sink
++import okio.Source
++import kotlin.test.Test
++
++internal class AdbConnectionTransportTest {
++
++    @Test
++    fun connect_customMaxData() {
++        val deviceResponse = Buffer()
++        val responsePayload = "device::features=shell_v2".toByteArray()
++        AdbWriter(deviceResponse).write(
++            Constants.CMD_CNXN,
++            Constants.CONNECT_VERSION,
++            4096,
++            responsePayload,
++            0,
++            responsePayload.size,
++        )
++
++        val hostWrites = Buffer()
++        val transport = SourceSinkAdbTransport(deviceResponse, hostWrites, "usb:test", 15 * 1024)
++
++        AdbConnection.connect(transport).use { connection ->
++            assertThat(connection.supportsFeature("shell_v2")).isTrue()
++        }
++
++        val connectMessage = AdbReader(hostWrites).readMessage()
++        assertThat(connectMessage.command).isEqualTo(Constants.CMD_CNXN)
++        assertThat(connectMessage.arg1).isEqualTo(15 * 1024)
++    }
++
++    @Test
++    fun connect_stlsUpgrade() {
++        val rawDeviceResponse = Buffer()
++        AdbWriter(rawDeviceResponse).write(
++            Constants.CMD_STLS,
++            Constants.STLS_VERSION,
++            0,
++            null,
++            0,
++            0,
++        )
++
++        val upgradedDeviceResponse = Buffer()
++        val responsePayload = "device::features=shell_v2".toByteArray()
++        AdbWriter(upgradedDeviceResponse).write(
++            Constants.CMD_CNXN,
++            Constants.CONNECT_VERSION,
++            4096,
++            responsePayload,
++            0,
++            responsePayload.size,
++        )
++
++        val rawHostWrites = Buffer()
++        val upgradedHostWrites = Buffer()
++        val transport =
++            FakeTlsTransport(
++                rawSource = rawDeviceResponse,
++                rawSink = rawHostWrites,
++                upgradedSource = upgradedDeviceResponse,
++                upgradedSink = upgradedHostWrites,
++            )
++
++        AdbConnection.connect(transport).use { connection ->
++            assertThat(connection.supportsFeature("shell_v2")).isTrue()
++        }
++
++        assertThat(transport.upgraded).isTrue()
++        assertThat(transport.upgradeVersion).isEqualTo(Constants.STLS_VERSION)
++        assertThat(transport.rawConnectSeen).isTrue()
++        assertThat(transport.rawStlsSeen).isTrue()
++    }
++}
++
++private class FakeTlsTransport(
++    private val rawSource: Source,
++    private val rawSink: Buffer,
++    private val upgradedSource: Source,
++    private val upgradedSink: Buffer,
++) : TlsUpgradableAdbTransport {
++    var upgraded = false
++        private set
++
++    var upgradeVersion: Int? = null
++        private set
++
++    var rawConnectSeen = false
++        private set
++
++    var rawStlsSeen = false
++        private set
++
++    override val source: Source
++        get() = if (upgraded) upgradedSource else rawSource
++
++    override val sink: Sink
++        get() = if (upgraded) upgradedSink else rawSink
++
++    override val isClosed: Boolean = false
++
++    override fun upgradeToTls(version: Int) {
++        val reader = AdbReader(rawSink)
++        rawConnectSeen = reader.readMessage().command == Constants.CMD_CNXN
++        rawStlsSeen = reader.readMessage().command == Constants.CMD_STLS
++        upgraded = true
++        upgradeVersion = version
++    }
++
++    override fun close() = Unit
++}
+diff --git a/dadb/src/test/kotlin/dadb/DadbImplTest.kt b/dadb/src/test/kotlin/dadb/DadbImplTest.kt
+index 940185e..28c1d7f 100644
+--- a/dadb/src/test/kotlin/dadb/DadbImplTest.kt
++++ b/dadb/src/test/kotlin/dadb/DadbImplTest.kt
+@@ -18,6 +18,9 @@
+ package dadb
+ 
+ import com.google.common.truth.Truth
++import okio.sink
++import okio.source
++import java.net.Socket
+ import kotlin.test.AfterTest
+ import kotlin.test.BeforeTest
+ import kotlin.test.Ignore
+@@ -46,6 +49,29 @@ internal class DadbImplTest {
+         assertShellResponse(dadb.shell("echo hello2"), 0, "hello2\n")
+     }
+ 
++    @Test
++    fun reconnection_customTransport() {
++        val customDadb =
++            Dadb.create(
++                description = "localhost:5555",
++                keyPair = AdbKeyPair.readDefault(),
++            ) {
++                val socket = Socket("localhost", 5555)
++                SourceSinkAdbTransport(
++                    source = socket.source(),
++                    sink = socket.sink(),
++                    description = "localhost:5555",
++                    closeable = socket,
++                )
++            } as DadbImpl
++
++        customDadb.use {
++            assertShellResponse(it.shell("echo hello1"), 0, "hello1\n")
++            it.closeConnection()
++            assertShellResponse(it.shell("echo hello2"), 0, "hello2\n")
++        }
++    }
++
+     @Ignore
+     @Test
+     fun root() {
+diff --git a/gradle/wrapper/gradle-wrapper.properties b/gradle/wrapper/gradle-wrapper.properties
+index a595206..221c4f9 100644
+--- a/gradle/wrapper/gradle-wrapper.properties
++++ b/gradle/wrapper/gradle-wrapper.properties
+@@ -1,5 +1,5 @@
+ distributionBase=GRADLE_USER_HOME
+ distributionPath=wrapper/dists
+-distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip
++distributionUrl=https\://services.gradle.org/distributions/gradle-9.4.1-bin.zip
+ zipStoreBase=GRADLE_USER_HOME
+ zipStorePath=wrapper/dists
+diff --git a/settings.gradle.kts b/settings.gradle.kts
+index 10dfcb6..d739f70 100644
+--- a/settings.gradle.kts
++++ b/settings.gradle.kts
+@@ -1,2 +1,18 @@
++pluginManagement {
++    repositories {
++        google()
++        mavenCentral()
++        gradlePluginPortal()
++    }
++}
++
++dependencyResolutionManagement {
++    repositories {
++        google()
++        mavenCentral()
++    }
++}
++
+ rootProject.name = "dadb"
+ include("dadb")
++include("dadb-android")

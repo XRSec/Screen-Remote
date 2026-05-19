@@ -54,3 +54,13 @@ Android 客户端里，适合做日常远控、联调和问题排查。
 
 - `docs/` 是当前主文档目录。
 - 更偏阶段记录和工程协作的内容，可以继续查看 `05-handoff/`、`06-research/` 和 `07-steering/`。
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=XRSec%2Fscrcpy-mobile&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=XRSec/scrcpy-mobile&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=XRSec/scrcpy-mobile&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=XRSec/scrcpy-mobile&type=date&legend=top-left" />
+ </picture>
+</a>

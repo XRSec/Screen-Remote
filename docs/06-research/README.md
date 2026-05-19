@@ -14,6 +14,10 @@
 2. [transport-control-buffer.md](transport-control-buffer.md)
 3. [server-socket-control.md](server-socket-control.md)
 4. [codec-low-latency-c2.md](codec-low-latency-c2.md)
+5. [ios-adaptation-code-audit.md](ios-adaptation-code-audit.md)
+6. [ios-asset-mapping.md](ios-asset-mapping.md)
+7. [ios-prototype-session-edit-analysis.md](ios-prototype-session-edit-analysis.md)
+8. [ios-prototype-window-sizing-analysis.md](ios-prototype-window-sizing-analysis.md)
 
 ## 文档分工
 
@@ -25,6 +29,14 @@
   server 参数、多 socket、控制流队列与背压细节。
 - [codec-low-latency-c2.md](codec-low-latency-c2.md)
   codec 策略、硬件优先、low latency 与 C2 的价值判断。
+- [ios-adaptation-code-audit.md](ios-adaptation-code-audit.md)
+  iOS 原型适配到 Android 当前实现时的代码审计记录。
+- [ios-asset-mapping.md](ios-asset-mapping.md)
+  iOS 原型资源到 Android 资源体系的映射记录。
+- [ios-prototype-session-edit-analysis.md](ios-prototype-session-edit-analysis.md)
+  iOS 原型会话编辑交互和 Android 落地差异分析。
+- [ios-prototype-window-sizing-analysis.md](ios-prototype-window-sizing-analysis.md)
+  iOS 原型窗口尺寸策略及 Android 对齐分析。
 
 ## 最适合谁看
 

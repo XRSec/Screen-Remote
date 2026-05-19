@@ -16,6 +16,7 @@
 4. [session-options.md](session-options.md)
 5. [device-pairing.md](device-pairing.md)
 6. [pairing-and-codec.md](pairing-and-codec.md)
+7. [logging-maintenance-guide.md](logging-maintenance-guide.md)
 
 ## 文档分工
 
@@ -31,6 +32,8 @@
   Wireless Debugging pairing 入口、阶段划分与失败判断。
 - [pairing-and-codec.md](pairing-and-codec.md)
   pairing 与编解码器配置的联合视角。
+- [logging-maintenance-guide.md](logging-maintenance-guide.md)
+  日志标签、分类开关、统一入口和防漏网检查清单。
 
 ## 最适合谁看
 

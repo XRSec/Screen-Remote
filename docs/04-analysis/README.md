@@ -15,6 +15,8 @@
 2. [troubleshooting.md](troubleshooting.md)
 3. [metadata-and-codec.md](metadata-and-codec.md)
 4. [remote-ui-layout-inspector-rules.md](remote-ui-layout-inspector-rules.md)
+5. [control-idle-disconnect-fix.md](control-idle-disconnect-fix.md)
+6. [session-edit-dialog-layout-notes.md](session-edit-dialog-layout-notes.md)
 
 ## 文档分工
 
@@ -26,6 +28,10 @@
   metadata 读取时序、完整读取语义、codec 组合判断。
 - [remote-ui-layout-inspector-rules.md](remote-ui-layout-inspector-rules.md)
   远程 UI 布局解析、toggle 识别、覆盖层渲染和已知边界。
+- [control-idle-disconnect-fix.md](control-idle-disconnect-fix.md)
+  控制流空闲断连问题的修复记录和排障上下文。
+- [session-edit-dialog-layout-notes.md](session-edit-dialog-layout-notes.md)
+  会话编辑弹窗布局问题的分析与调整记录。
 
 ## 最适合谁看
 

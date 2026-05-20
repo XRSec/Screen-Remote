@@ -121,4 +121,4 @@ external/*/.cxx/
 external/*/local.properties
 
 # Scrcpy mobile specific (handled by submodule's own .gitignore)
-# Note: scrcpy-mobile is a git submodule, don't ignore the directory itself
+# Note: Screen-Remote is a git submodule, don't ignore the directory itself

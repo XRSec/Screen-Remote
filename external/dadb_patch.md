@@ -6,8 +6,8 @@ This file is the continuation entry for the `external/dadb` work. It records the
 
 ## Current state
 
-- Workspace root: `/Users/xr/IDEA.localized/scrcpy-mobile`
-- dadb repo: `/Users/xr/IDEA.localized/scrcpy-mobile/external/dadb`
+- Workspace root: `/Users/xr/IDEA.localized/Screen-Remote`
+- dadb repo: `/Users/xr/IDEA.localized/Screen-Remote/external/dadb`
 - Current `dadb` HEAD: `ba987b2`
 - Patch review baseline: `upstream/master` at `1566896`
 - Current `external/dadb` worktree: dirty
@@ -217,7 +217,7 @@ Diff size snapshot:
 
 The app side currently consumes the Android USB module through:
 
-- `scrcpy-mobile/app/src/main/java/com/mobile/scrcpy/android/infrastructure/adb/connection/AdbConnectionConnector.kt`
+- `Screen-Remote/app/src/main/java/com/screen/remote/android/infrastructure/adb/connection/AdbConnectionConnector.kt`
 
 It uses:
 
@@ -311,7 +311,7 @@ From `external/dadb`:
 ./gradlew --no-daemon -Pkotlin.incremental=false :dadb:test --tests dadb.AdbConnectionTransportTest :dadb-android:compileDebugKotlin :dadb-android:testDebugUnitTest
 ```
 
-From `scrcpy-mobile`:
+From `Screen-Remote`:
 
 ```bash
 ./gradlew --no-daemon -Pkotlin.incremental=false :app:compileDebugKotlin

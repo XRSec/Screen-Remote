@@ -3,7 +3,7 @@
 	submodule-sync-all submodule-update-all submodule-status-all
 
 # 应用配置
-APP_ID := com.mobile.scrcpy.android
+APP_ID := com.screen.remote.android
 EMULATOR_NAME := Pixel_9
 
 # 子模块配置
@@ -11,21 +11,21 @@ ALL_SUBMODULES ?= $(shell git config -f .gitmodules --get-regexp '^submodule\..*
 EXTERNAL_SUBMODULES ?= $(shell git config -f .gitmodules --get-regexp '^submodule\..*\.path$$' | awk '$$2 ~ /^external\// { print $$2 }')
 
 # 从 gradle.properties 读取版本号
-VERSION_NAME := $(shell awk -F= '/^VERSION_NAME=/ { print $$2; exit }' scrcpy-mobile/gradle.properties)
-VERSION_CODE := $(shell awk -F= '/^VERSION_CODE=/ { print $$2; exit }' scrcpy-mobile/gradle.properties)
+VERSION_NAME := $(shell awk -F= '/^VERSION_NAME=/ { print $$2; exit }' Screen-Remote/gradle.properties)
+VERSION_CODE := $(shell awk -F= '/^VERSION_CODE=/ { print $$2; exit }' Screen-Remote/gradle.properties)
 
 # 路径配置
-APK_DIR := scrcpy-mobile/app/build/outputs/apk
-RENAMED_APK_DIR := scrcpy-mobile/app/build/outputs/renamed_apks
-DEBUG_APK := $(shell find scrcpy-mobile/app/build/outputs/apk/debug -name "*arm64-v8a-*.apk")
+APK_DIR := Screen-Remote/app/build/outputs/apk
+RENAMED_APK_DIR := Screen-Remote/app/build/outputs/renamed_apks
+DEBUG_APK := $(shell find Screen-Remote/app/build/outputs/apk/debug -name "*arm64-v8a-*.apk")
 RENAMED_DEBUG_DIR := $(RENAMED_APK_DIR)/debug
 RELEASE_DIR := $(APK_DIR)/release
 RENAMED_RELEASE_DIR := $(RENAMED_APK_DIR)/release
 OUT_DIR := $(HOME)/Downloads
 
 # 签名配置
-KEYSTORE_FILE := scrcpy-mobile/release.keystore
-KEYSTORE_PROPS := scrcpy-mobile/keystore.properties
+KEYSTORE_FILE := Screen-Remote/release.keystore
+KEYSTORE_PROPS := Screen-Remote/keystore.properties
 
 help:
 	@echo "可用命令："
@@ -86,7 +86,7 @@ submodule-status-all:
 
 debug:
 	@echo "编译 debug 版本..."
-	cd scrcpy-mobile && ./gradlew assembleDebug
+	cd Screen-Remote && ./gradlew assembleDebug
 	@$(MAKE) rename-debug-apks
 
 keystore:
@@ -95,20 +95,20 @@ keystore:
 	else \
 		echo "生成签名密钥..."; \
 		keytool -genkey -v -keystore $(KEYSTORE_FILE) \
-			-alias scrcpy-mobile \
+			-alias Screen-Remote \
 			-keyalg RSA -keysize 2048 -validity 10000 \
 			-storepass android -keypass android \
-			-dname "CN=Scrcpy Mobile, OU=Development, O=Scrcpy, L=Beijing, ST=Beijing, C=CN"; \
+			-dname "CN=Screen Remote, OU=Development, O=Scrcpy, L=Beijing, ST=Beijing, C=CN"; \
 		echo "storeFile=release.keystore" > $(KEYSTORE_PROPS); \
 		echo "storePassword=android" >> $(KEYSTORE_PROPS); \
-		echo "keyAlias=scrcpy-mobile" >> $(KEYSTORE_PROPS); \
+		echo "keyAlias=Screen-Remote" >> $(KEYSTORE_PROPS); \
 		echo "keyPassword=android" >> $(KEYSTORE_PROPS); \
 		echo "✓ 密钥生成完成"; \
 	fi
 
 release: keystore
 	@echo "编译 release 版本（所有架构）..."
-	cd scrcpy-mobile && ./gradlew assembleRelease
+	cd Screen-Remote && ./gradlew assembleRelease
 	@$(MAKE) rename-release-apks
 	@echo "\n复制 APK 到输出目录..."
 	@mkdir -p $(OUT_DIR)
@@ -153,7 +153,7 @@ uninstall:
 
 clean:
 	@echo "清理构建文件..."
-	cd scrcpy-mobile && ./gradlew clean
+	cd Screen-Remote && ./gradlew clean
 
 devices:
 	@echo "已连接的设备："
@@ -175,7 +175,7 @@ log:
 	@echo "查看应用日志 (Ctrl+C 退出)..."
 #	@adb logcat -s "AdbManager:*" "ScrcpyClient:*" -v brief
 	@adb logcat -c
-	@adb shell "run-as com.mobile.scrcpy.android.debug sh -c 'latest=\$(ls -t files/logs | head -n 1); tail -f files/logs/\$latest'"
+	@adb shell "run-as com.screen.remote.android.debug sh -c 'latest=\$(ls -t files/logs | head -n 1); tail -f files/logs/\$latest'"
 
 
 run: install start

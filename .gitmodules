@@ -46,14 +46,14 @@
 	shallow = true
 	fetchRecurseSubmodules = false
 
-[submodule "scrcpy-mobile"]
-	path = scrcpy-mobile
-	url = git@github.com:XRSec/scrcpy-mobile-src.git
+[submodule "Screen-Remote"]
+	path = Screen-Remote
+	url = git@github.com:XRSec/Screen-Remote-src.git
 	shallow = true
 	fetchRecurseSubmodules = false
 
 [submodule "wiki"]
 	path = wiki
-	url = git@github.com:XRSec/scrcpy-mobile.wiki.git
+	url = git@github.com:XRSec/Screen-Remote.wiki.git
 	shallow = true
 	fetchRecurseSubmodules = false

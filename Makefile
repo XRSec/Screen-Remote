@@ -1,14 +1,21 @@
 .PHONY: help build debug release rename-debug-apks rename-release-apks install clean devices emulator run \
-	submodule-sync submodule-update submodule-status \
-	submodule-sync-all submodule-update-all submodule-status-all
+	submodule-update submodule-status
 
 # 应用配置
 APP_ID := com.screen.remote.android
 EMULATOR_NAME := Pixel_9
 
 # 子模块配置
-ALL_SUBMODULES ?= $(shell git config -f .gitmodules --get-regexp '^submodule\..*\.path$$' | awk '{ print $$2 }')
-EXTERNAL_SUBMODULES ?= $(shell git config -f .gitmodules --get-regexp '^submodule\..*\.path$$' | awk '$$2 ~ /^external\// { print $$2 }')
+SUBMODULES := \
+	external/adb-mobile-ios \
+	external/libadb-android \
+	external/ScrcpyForAndroid-Miuzarte \
+	external/dadb \
+	external/Easycontrol \
+	external/scrcpy \
+	external/screen-remote-ios \
+	external/Kadb \
+	external/ScrcpyForAndroid
 
 # 从 gradle.properties 读取版本号
 VERSION_NAME := $(shell awk -F= '/^VERSION_NAME=/ { print $$2; exit }' Screen-Remote/gradle.properties)
@@ -41,12 +48,8 @@ help:
 	@echo "  make devices        - 列出连接的设备"
 	@echo "  make emulator       - 启动虚拟机"
 	@echo "  make run            - 编译、安装并启动 debug"
-	@echo "  make submodule-sync - 同步 external 目录子模块 URL 配置（不递归）"
-	@echo "  make submodule-update - 更新 external 目录子模块到父仓库记录的提交（不递归）"
-	@echo "  make submodule-status - 查看 external 目录子模块状态"
-	@echo "  make submodule-sync-all - 同步所有子模块 URL 配置（不递归）"
-	@echo "  make submodule-update-all - 更新所有子模块到父仓库记录的提交（不递归）"
-	@echo "  make submodule-status-all - 查看所有子模块状态"
+	@echo "  make submodule-update - 更新依赖仓库主分支；dadb 只获取 upstream/master"
+	@echo "  make submodule-status - 查看依赖仓库状态"
 	@echo "  make start          - 启动应用"
 	@echo "  make stop           - 停止应用"
 	@echo "  make log            - 查看应用日志"
@@ -56,33 +59,50 @@ help:
 
 build: debug
 
-submodule-sync:
-	@echo "同步子模块配置（不递归）..."
-	@git submodule sync -- $(EXTERNAL_SUBMODULES)
-	@echo "✓ 子模块配置已同步"
-
 submodule-update:
-	@echo "更新 external 目录子模块（不递归）..."
-	@git submodule update --init --checkout --depth 1 -- $(EXTERNAL_SUBMODULES)
-	@echo "✓ external 目录子模块已更新到父仓库记录的提交"
+	@echo "更新依赖仓库主分支（不取 tag）..."
+	@set -e; \
+	update() { \
+		path="$$1"; local_branch="$$2"; remote="$$3"; remote_branch="$$4"; merge_mode="$$5"; \
+		if ! git -C "$$path" rev-parse --git-dir >/dev/null 2>&1; then \
+			git submodule update --init --depth 1 -- "$$path"; \
+		fi; \
+		if ! git -C "$$path" diff --quiet || ! git -C "$$path" diff --cached --quiet; then \
+			echo "✗ $$path 有未提交修改，已停止"; \
+			exit 1; \
+		fi; \
+		if git -C "$$path" show-ref --verify --quiet "refs/heads/$$local_branch"; then \
+			git -C "$$path" checkout "$$local_branch"; \
+		else \
+			git -C "$$path" checkout -b "$$local_branch"; \
+		fi; \
+		echo "  → $$path: $$remote/$$remote_branch"; \
+		git -C "$$path" fetch --no-tags "$$remote" "$$remote_branch"; \
+		git -C "$$path" merge $$merge_mode FETCH_HEAD; \
+	}; \
+	update external/adb-mobile-ios main origin main --ff-only; \
+	update external/libadb-android master origin master --ff-only; \
+	update external/ScrcpyForAndroid-Miuzarte main origin main --ff-only; \
+	update external/Easycontrol master origin master --ff-only; \
+	update external/scrcpy master origin master --ff-only; \
+	update external/screen-remote-ios main origin main --ff-only; \
+	update external/Kadb main origin main --ff-only; \
+	update external/ScrcpyForAndroid main origin main --ff-only; \
+	if ! git -C external/dadb rev-parse --git-dir >/dev/null 2>&1; then \
+		git submodule update --init --depth 1 -- external/dadb; \
+	fi; \
+	if ! git -C external/dadb remote get-url upstream >/dev/null 2>&1; then \
+		git -C external/dadb remote add upstream git@github.com:mobile-dev-inc/dadb.git; \
+	fi; \
+	echo "  → external/dadb: 仅更新远程跟踪分支 upstream/master"; \
+	git -C external/dadb fetch --no-tags upstream \
+		'+refs/heads/master:refs/remotes/upstream/master'; \
+	echo "    upstream/master = $$(git -C external/dadb rev-parse --short upstream/master)"
+	@echo "✓ 依赖仓库已更新；wiki 和 Screen-Remote 未改动"
 
 submodule-status:
-	@echo "external 目录子模块状态："
-	@git submodule status -- $(EXTERNAL_SUBMODULES)
-
-submodule-sync-all:
-	@echo "同步所有子模块配置（不递归）..."
-	@git submodule sync -- $(ALL_SUBMODULES)
-	@echo "✓ 所有子模块配置已同步"
-
-submodule-update-all:
-	@echo "更新所有子模块（不递归）..."
-	@git submodule update --init --checkout --depth 1 -- $(ALL_SUBMODULES)
-	@echo "✓ 所有子模块已更新到父仓库记录的提交"
-
-submodule-status-all:
-	@echo "所有子模块状态："
-	@git submodule status -- $(ALL_SUBMODULES)
+	@echo "依赖仓库状态："
+	@git submodule status -- $(SUBMODULES)
 
 debug:
 	@echo "编译 debug 版本..."
@@ -173,10 +193,11 @@ stop:
 
 log:
 	@echo "查看应用日志 (Ctrl+C 退出)..."
-#	@adb logcat -s "AdbManager:*" "ScrcpyClient:*" -v brief
 	@adb logcat -c
-	@adb shell "run-as com.screen.remote.android.debug sh -c 'latest=\$(ls -t files/logs | head -n 1); tail -f files/logs/\$latest'"
+	@adb logcat -v threadtime SSVR:D SKPK:D SCLI:D '*:S' 2>&1 | grep --line-buffered -E '\[server\] (INFO: Device:|DEBUG: Creating (video|audio) encoder)|scrcpy-server 已启动|开始连接 socket|video socket connected|audio socket connected|control socket connected|[Dd]ummy byte|自动交换|Socket 建链失败|video:device_meta|video device meta|video stream codec|video session meta parsed|读取视频元数据失败'
 
+logall:
+	@adb logcat -c && adb logcat --pid="$$(adb shell pidof -s com.screen.remote.android.debug)" -v threadtime '*:V'
 
 run: install start
 	@echo "✓ 应用已启动"
@@ -190,3 +211,6 @@ info:
 	@echo "  版本: $(VERSION_NAME) ($(VERSION_CODE))"
 	@echo "  Debug APK: $(DEBUG_APK)"
 	@echo "  Release 目录: $(RELEASE_DIR)"
+
+adb.forward:
+	socat TCP4-LISTEN:15555,bind=192.168.5.14,reuseaddr,fork TCP4:127.0.0.1:5555

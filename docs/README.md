@@ -8,6 +8,15 @@ Android 客户端里，适合做日常远控、联调和问题排查。
 > [!IMPORTANT]
 > [用户使用文档](https://github.com/XRSec/Screen-Remote/wiki/用户使用文档)  |  [开发文档](https://github.com/XRSec/Screen-Remote/wiki/开发文档)
 
+## Release 介绍
+
+Screen Remote 现已发布！它将设备连接、屏幕镜像、远程控制和常用调试工具集成在一个 Android 客户端中，支持通过 ADB、USB Host 和 Wireless Debugging 连接设备。无论是日常远程操控，还是开发联调与问题排查，都可以更方便地完成。
+
+### 演示视频
+
+- [哔哩哔哩](https://b23.tv/BV1BAKg6kE7v)
+- [YouTube](https://youtu.be/2LU9DtDK3fs)
+
 ## 可以做什么
 
 - 管理多台设备和多组会话配置

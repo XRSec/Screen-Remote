@@ -24,7 +24,7 @@ VERSION_CODE := $(shell awk -F= '/^VERSION_CODE=/ { print $$2; exit }' Screen-Re
 # 路径配置
 APK_DIR := Screen-Remote/app/build/outputs/apk
 RENAMED_APK_DIR := Screen-Remote/app/build/outputs/renamed_apks
-DEBUG_APK := $(shell find Screen-Remote/app/build/outputs/apk/debug -name "*arm64-v8a-*.apk")
+DEBUG_APK = $(shell find $(APK_DIR)/debug -name "*arm64-v8a-*.apk" 2>/dev/null | head -n 1)
 RENAMED_DEBUG_DIR := $(RENAMED_APK_DIR)/debug
 RELEASE_DIR := $(APK_DIR)/release
 RENAMED_RELEASE_DIR := $(RENAMED_APK_DIR)/release

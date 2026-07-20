@@ -1,0 +1,168 @@
+name: Build source repository and publish release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GH_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+  SOURCE_REPOSITORY: XRSec/Screen-Remote-src
+  SOURCE_REF: main
+  DADB_REPOSITORY: XRSec/dadb
+  DADB_REF: main
+  RELEASE_REPOSITORY: XRSec/Screen-Remote
+
+concurrency:
+  group: screen-remote-release
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$GH_TOKEN" ]]; then
+            echo "::error::Missing repository secret: TOKEN_GITHUB"
+            exit 1
+          fi
+
+      - name: Checkout release metadata
+        uses: actions/checkout@v6
+        with:
+          path: workspace
+          token: ${{ env.GH_TOKEN }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout application source
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: ${{ env.SOURCE_REF }}
+          token: ${{ env.GH_TOKEN }}
+          path: workspace/Screen-Remote
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout dadb dependency
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.DADB_REPOSITORY }}
+          ref: ${{ env.DADB_REF }}
+          token: ${{ env.GH_TOKEN }}
+          path: workspace/external/dadb
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Install Android SDK packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager \
+            "platforms;android-37.0" \
+            "build-tools;37.0.0" \
+            "ndk;30.0.15729638" \
+            "cmake;4.1.2" \
+            --channel=3
+
+      - name: Verify release signing files
+        shell: bash
+        working-directory: workspace
+        run: |
+          set -euo pipefail
+          for file in Screen-Remote/release.keystore Screen-Remote/keystore.properties; do
+            if [[ ! -f "$file" ]]; then
+              echo "::error::Missing signing file: $file"
+              exit 1
+            fi
+          done
+
+      - name: Build release APKs
+        id: build
+        shell: bash
+        working-directory: workspace
+        run: |
+          set -euo pipefail
+          sed -i '/^org\.gradle\.java\.home=/d' Screen-Remote/gradle.properties
+          chmod +x Screen-Remote/gradlew
+          make release OUT_DIR="$GITHUB_WORKSPACE/release-assets"
+
+          version_name="$(sed -n 's/^VERSION_NAME=//p' Screen-Remote/gradle.properties | head -n 1)"
+          version_code="$(sed -n 's/^VERSION_CODE=//p' Screen-Remote/gradle.properties | head -n 1)"
+          if [[ -z "$version_name" || -z "$version_code" ]]; then
+            echo "::error::VERSION_NAME or VERSION_CODE is missing from gradle.properties"
+            exit 1
+          fi
+
+          shopt -s nullglob
+          apks=("$GITHUB_WORKSPACE"/release-assets/*.apk)
+          if (( ${#apks[@]} == 0 )); then
+            echo "::error::No release APK was produced"
+            exit 1
+          fi
+
+          release_tag="${version_name}.${version_code}"
+          {
+            echo "tag=$release_tag"
+            echo "version_name=$version_name"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub Release
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.build.outputs.tag }}
+          RELEASE_NOTES_FILE: ${{ github.workspace }}/workspace/docs/UPDATES.md
+        run: |
+          set -euo pipefail
+          assets=("$GITHUB_WORKSPACE"/release-assets/*.apk)
+          if [[ ! -f "$RELEASE_NOTES_FILE" ]]; then
+            echo "::error::Release notes file not found: $RELEASE_NOTES_FILE"
+            exit 1
+          fi
+
+          if gh release view "$RELEASE_TAG" --repo "$RELEASE_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" \
+              --repo "$RELEASE_REPOSITORY" \
+              --title "$RELEASE_TAG" \
+              --notes-file "$RELEASE_NOTES_FILE" \
+              --draft=false \
+              --prerelease=false
+          else
+            gh release create "$RELEASE_TAG" \
+              --repo "$RELEASE_REPOSITORY" \
+              --title "$RELEASE_TAG" \
+              --notes-file "$RELEASE_NOTES_FILE"
+          fi
+
+          gh release upload "$RELEASE_TAG" "${assets[@]}" \
+            --repo "$RELEASE_REPOSITORY" \
+            --clobber
+
+      - name: Upload build artifact
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-apks-${{ steps.build.outputs.version_name || github.run_number }}
+          path: release-assets/*.apk
+          if-no-files-found: warn
+          retention-days: 14

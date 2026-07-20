@@ -1,11 +1,23 @@
-# 更新日志
+# Update Log
 
 ## 4.4.3.6
 
-发布日期：2026-07-21
+Release Date: 2026-07-21
 
-- 新增应用内下载并安装更新，统一四段式版本号
-- 优化 MTK H.264 编码画质与低延迟表现，提升游戏模式码率
-- 修复屏幕挖孔、文件选择和会话管理的 API 兼容问题
-- 修复会话编辑页码率显示为原始数值的问题
-- 添加游戏标签
+- Added in-app download and installation update functionality, standardizing the four-segment version number.
+
+- Optimized MTK H.264 encoding for better image quality and low latency, improved game mode bitrate.
+
+- Fixed API compatibility issues with screen punch-hole, file selection, and session management.
+
+- Fixed the issue of session editing page bitrate displaying the original value.
+
+- Added game tags.
+
+- Updated keyboard hints.
+
+- Allowed the use of the floating ball in game mode.
+
+- Game modification update to 1M 2M 4M 8M 20M.
+
+- Updated backup and restore backup fields.

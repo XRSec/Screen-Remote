@@ -32,7 +32,7 @@ Debugging，可通过无线配对、mDNS 自动发现和多个备用地址快速
 - 连接过程
 - 目标设备
 
-![远程控制](./remote-control-overview.jpg)
+![远程控制](./CN/remote-control-overview.jpg)
 
 ### 设备管理
 
@@ -44,9 +44,9 @@ Debugging，可通过无线配对、mDNS 自动发现和多个备用地址快速
 - 端口转发
 - 运行命令
 
-![设备信息、实用工具与文件管理](./device-info-tools-file-management.jpg)
+![设备信息、实用工具与文件管理](./CN/device-info-tools-file-management.jpg)
 
-![应用、进程、端口转发与命令管理](./app-process-port-forwarding-shell.jpg)
+![应用、进程、端口转发与命令管理](./CN/app-process-port-forwarding-shell.jpg)
 
 ### 软件设置
 
@@ -61,19 +61,19 @@ Debugging，可通过无线配对、mDNS 自动发现和多个备用地址快速
 - 日志管理
 - 关于 / 反馈
 
-![设置](./app-settings.jpg)
+![设置](./CN/app-settings.jpg)
 
 ### 编解码器测试
 
-![编解码器检测](./codec-test.jpg)
+![编解码器检测](./CN/codec-test.jpg)
 
 ### 虚拟屏幕
 
-![虚拟屏幕](./virtual-display.jpg)
+![虚拟屏幕](./CN/virtual-display.jpg)
 
 ### UI 分析与分辨率调整
 
-![UI 分析与分辨率调整](./ui-analysis-resolution-adjustment.jpg)
+![UI 分析与分辨率调整](./CN/ui-analysis-resolution-adjustment.jpg)
 
 ### 设备调试
 
@@ -81,36 +81,36 @@ Debugging，可通过无线配对、mDNS 自动发现和多个备用地址快速
 - 实时信息
 - 调试小窗
 
-![屏幕跟随、设备信息与调试](./screen-following-device-info-debugging.jpg)
+![屏幕跟随、设备信息与调试](./CN/screen-following-device-info-debugging.jpg)
 
 ## 无线调试开启方法
 
 ### 开发者设置
 
-![开发者设置](./developer-options.jpg)
+![开发者设置](./CN/developer-options.jpg)
 
-![无线调试](./wireless-debugging.jpg)
+![无线调试](./CN/wireless-debugging.jpg)
 
 ### 软件使用方法
 
+#### 配对 无线调试
+
+![设备配对](./CN/wireless-debugging-pairing.jpg)
+
 #### 添加会话
 
-![添加会话](./add-session.jpg)
+![添加会话](./CN/add-session.jpg)
 
 #### 添加会话地址
 
-![添加mDNS 地址](./add-mdns-address.jpg)
-
-#### 配对 无线调试
-
-![设备配对](./wireless-debugging-pairing.jpg)
+![添加mDNS 地址](./CN/add-mdns-address.jpg)
 
 ## Star History
 
 <a href="https://www.star-history.com/?repos=XRSec%2FScreen-Remote&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&theme=dark&legend=top-left&sealed_token=LKnabYe1iTjH5Z-0o2cnSwnlQQ_JMsMvQ4c5V6pgEzHGoiSI7k-u2oCRSU3YMeYQnU86cssUZoGWJzbncchLa35UlpaQMdFQuGRzobudJkDC1AGCdgQc_Q" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&legend=top-left&sealed_token=LKnabYe1iTjH5Z-0o2cnSwnlQQ_JMsMvQ4c5V6pgEzHGoiSI7k-u2oCRSU3YMeYQnU86cssUZoGWJzbncchLa35UlpaQMdFQuGRzobudJkDC1AGCdgQc_Q" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&legend=top-left&sealed_token=LKnabYe1iTjH5Z-0o2cnSwnlQQ_JMsMvQ4c5V6pgEzHGoiSI7k-u2oCRSU3YMeYQnU86cssUZoGWJzbncchLa35UlpaQMdFQuGRzobudJkDC1AGCdgQc_Q" />
  </picture>
 </a>

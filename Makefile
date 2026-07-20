@@ -1,4 +1,4 @@
-.PHONY: help build debug release rename-debug-apks rename-release-apks install clean devices emulator run \
+.PHONY: help build debug release rename-debug-apks rename-release-apks copy-release-apks install clean devices emulator run \
 	submodule-update submodule-status
 
 # 应用配置
@@ -130,12 +130,23 @@ release: keystore
 	@echo "编译 release 版本（所有架构）..."
 	cd Screen-Remote && ./gradlew assembleRelease
 	@$(MAKE) rename-release-apks
+	@$(MAKE) copy-release-apks OUT_DIR="$(OUT_DIR)"
+
+copy-release-apks:
 	@echo "\n复制 APK 到输出目录..."
-	@mkdir -p $(OUT_DIR)
-	@find $(RENAMED_RELEASE_DIR) -maxdepth 1 -name "Screen Remote-*.apk" | while read apk; do \
+	@mkdir -p "$(OUT_DIR)"
+	@set -e; \
+	found=0; \
+	for apk in "$(RENAMED_RELEASE_DIR)"/Screen.Remote-*.apk; do \
+		[ -f "$$apk" ] || continue; \
 		cp -f "$$apk" "$(OUT_DIR)/"; \
 		echo "  ✓ $$(basename "$$apk")"; \
-	done
+		found=1; \
+	done; \
+	if [ "$$found" -ne 1 ]; then \
+		echo "✗ 未找到 release APK: $(RENAMED_RELEASE_DIR)/Screen.Remote-*.apk"; \
+		exit 1; \
+	fi
 	@echo "\n✓ 完成，输出目录: $(OUT_DIR)"
 
 rename-debug-apks:
@@ -145,7 +156,7 @@ rename-debug-apks:
 	@find $(APK_DIR)/debug -maxdepth 1 -name "app-*-debug.apk" | while read apk; do \
 		name=$$(basename "$$apk"); \
 		abi=$${name#app-}; abi=$${abi%-debug.apk}; \
-		dest="$(RENAMED_DEBUG_DIR)/Screen Remote-$$abi-$(VERSION_NAME)_$(VERSION_CODE).apk"; \
+		dest="$(RENAMED_DEBUG_DIR)/Screen.Remote-$$abi-$(VERSION_NAME).$(VERSION_CODE).apk"; \
 		cp -f "$$apk" "$$dest"; \
 		echo "  ✓ $$(basename "$$dest")"; \
 	done
@@ -157,7 +168,7 @@ rename-release-apks:
 	@find $(RELEASE_DIR) -maxdepth 1 -name "app-*-release.apk" | while read apk; do \
 		name=$$(basename "$$apk"); \
 		abi=$${name#app-}; abi=$${abi%-release.apk}; \
-		dest="$(RENAMED_RELEASE_DIR)/Screen Remote-$$abi-$(VERSION_NAME)_$(VERSION_CODE).apk"; \
+		dest="$(RENAMED_RELEASE_DIR)/Screen.Remote-$$abi-$(VERSION_NAME).$(VERSION_CODE).apk"; \
 		cp -f "$$apk" "$$dest"; \
 		echo "  ✓ $$(basename "$$dest")"; \
 	done

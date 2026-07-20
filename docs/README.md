@@ -1,59 +1,128 @@
 # Screen Remote
 
-Screen Remote 是一个运行在 Android 设备上的远程控制应用。
-
-它基于 scrcpy 协议链路，把设备连接、会话配置、屏幕镜像、控制输入，以及一组常用调试工具整理进同一个
-Android 客户端里，适合做日常远控、联调和问题排查。
-
 > [!IMPORTANT]
-> [用户使用文档](https://github.com/XRSec/Screen-Remote/wiki/用户使用文档)  |  [开发文档](https://github.com/XRSec/Screen-Remote/wiki/开发文档)
+> [English](README.md) | [简体中文](README_CN.md) | [User Guide](https://github.com/XRSec/Screen-Remote/wiki/用户使用文档) | [Developer Guide](https://github.com/XRSec/Screen-Remote/wiki/开发文档) | [Bilibili](https://b23.tv/BV1BAKg6kE7v) | [YouTube](https://youtu.be/2LU9DtDK3fs)
 
-## Release 介绍
+Screen Remote is a remote control and device management app that lets one Android device control
+another.
 
-Screen Remote 现已发布！它将设备连接、屏幕镜像、远程控制和常用调试工具集成在一个 Android 客户端中，支持通过 ADB、USB Host 和 Wireless Debugging 连接设备。无论是日常远程操控，还是开发联调与问题排查，都可以更方便地完成。
+Built on scrcpy and Android ADB, it enables an Android device to connect to, mirror, stream audio
+and video from, control, and manage another Android device—without a computer. The app supports TCP,
+USB Host, and Wireless Debugging connections, with wireless pairing, automatic mDNS discovery, and
+multiple fallback addresses for quick device access. It also provides game mode, virtual displays,
+port forwarding, file and app management, Shell access, and real-time diagnostics, making it
+suitable for everyday remote control, low-latency gaming, device maintenance, and development
+troubleshooting.
 
-### 演示视频
+## What You Can Do
 
-- [哔哩哔哩](https://b23.tv/BV1BAKg6kE7v)
-- [YouTube](https://youtu.be/2LU9DtDK3fs)
+- Manage multiple devices, session groups, and per-session settings, with a primary address and
+  multiple fallback addresses for each session
+- Connect over TCP, USB Host, or Wireless Debugging, with wireless pairing, automatic mDNS
+  discovery, and address latency testing
+- View the remote screen and hear its audio in real time; send multi-touch gestures, key events,
+  text, and clipboard content; and follow the remote screen orientation
+- Enable game mode to optimize touch handling and decoding for high-frame-rate video, continuous
+  movement, and quick taps
+- Create an independent virtual display and launch a selected app or launcher without affecting the
+  device's main screen
+- Configure port forwarding on the target device to access its network services from the controlling
+  device
+- View device information, manage files, apps, and processes, and run Shell commands and common
+  system actions
+- Monitor decoding and rendering frame rates, video bitrate, and network throughput, and use
+  real-time logs, codec tests, and layout inspection for troubleshooting
+- Export and restore essential data, including sessions, groups, settings, and ADB identities
 
-## 可以做什么
+## Interface Preview
 
-- 管理多台设备和多组会话配置
-- 通过 ADB、USB Host、Wireless Debugging 建立连接
-- 查看远端画面，并发送触摸、按键和输入操作
-- 查看设备信息、执行 Shell、管理应用和文件
-- 使用布局检查等辅助能力做调试
+The following screenshots are from the current version of the Android app.
 
-## 界面预览
+### Remote Control
 
-以下截图来自当前版本的 Android 客户端。
+- Home screen
+- Connection process
+- Target device
 
-<table>
-  <tr>
-    <td align="center"><img src="./home.png" alt="会话首页"/></td>
-    <td align="center"><img src="./app.png" alt="远程控制"/></td>
-    <td align="center"><img src="./tools.png" alt="实用工具"/></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="./file%20manage.png" alt="文件管理"/></td>
-    <td align="center"><img src="./app%20manage.png" alt="应用管理"/></td>
-    <td align="center"><img src="./process%20manage.png" alt="进程管理"/></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="./device%20info.png" alt="设备信息"/></td>
-    <td align="center"><img src="./shell%20tool.png" alt="运行命令"/></td>
-    <td align="center"><img src="./layout_inspector.png" alt="布局检查"/></td>
-    <td></td>
-  </tr>
-</table>
+![Remote control](./remote-control-overview.jpg)
+
+### Device Management
+
+- Device information
+- Utilities
+- File management
+- App management
+- Process management
+- Port forwarding
+- Run commands
+
+![Device information, utilities, and file management](./device-info-tools-file-management.jpg)
+
+![App, process, port forwarding, and command management](./app-process-port-forwarding-shell.jpg)
+
+### App Settings
+
+- Settings page
+- Appearance: follow system / light / dark
+- Language: follow system / Chinese / English
+- Haptic feedback
+- Frame rate display
+- Custom ADB keys
+- Wireless Debugging pairing
+- Debug mode
+- Log management
+- About / feedback
+
+![Settings](./app-settings.jpg)
+
+### Codec Test
+
+![Codec test](./codec-test.jpg)
+
+### Virtual Display
+
+![Virtual display](./virtual-display.jpg)
+
+### UI Analysis and Resolution Adjustment
+
+![UI analysis and resolution adjustment](./ui-analysis-resolution-adjustment.jpg)
+
+### Device Debugging
+
+- Auto-follow
+- Real-time information
+- Floating debug window
+
+![Screen following, device information, and debugging](./screen-following-device-info-debugging.jpg)
+
+## How to Enable Wireless Debugging
+
+### Developer Options
+
+![Developer options](./developer-options.jpg)
+
+![Wireless Debugging](./wireless-debugging.jpg)
+
+### Using the App
+
+#### Add a Session
+
+![Add a session](./add-session.jpg)
+
+#### Add a Session Address
+
+![Add an mDNS address](./add-mdns-address.jpg)
+
+#### Pair via Wireless Debugging
+
+![Device pairing](./wireless-debugging-pairing.jpg)
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=XRSec%2Fscrcpy-mobile&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=XRSec%2FScreen-Remote&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=XRSec/scrcpy-mobile&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=XRSec/scrcpy-mobile&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=XRSec/scrcpy-mobile&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&legend=top-left" />
  </picture>
 </a>

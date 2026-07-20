@@ -44,7 +44,7 @@ The following screenshots are from the current version of the Android app.
 - Connection process
 - Target device
 
-![Remote control](./remote-control-overview.jpg)
+![Remote control](./EN/remote-control-overview.jpg)
 
 ### Device Management
 
@@ -56,9 +56,9 @@ The following screenshots are from the current version of the Android app.
 - Port forwarding
 - Run commands
 
-![Device information, utilities, and file management](./device-info-tools-file-management.jpg)
+![Device information, utilities, and file management](./EN/device-info-tools-file-management.jpg)
 
-![App, process, port forwarding, and command management](./app-process-port-forwarding-shell.jpg)
+![App, process, port forwarding, and command management](./EN/app-process-port-forwarding-shell.jpg)
 
 ### App Settings
 
@@ -73,19 +73,19 @@ The following screenshots are from the current version of the Android app.
 - Log management
 - About / feedback
 
-![Settings](./app-settings.jpg)
+![Settings](./EN/app-settings.jpg)
 
 ### Codec Test
 
-![Codec test](./codec-test.jpg)
+![Codec test](./EN/codec-test.jpg)
 
 ### Virtual Display
 
-![Virtual display](./virtual-display.jpg)
+![Virtual display](./EN/virtual-display.jpg)
 
 ### UI Analysis and Resolution Adjustment
 
-![UI analysis and resolution adjustment](./ui-analysis-resolution-adjustment.jpg)
+![UI analysis and resolution adjustment](./EN/ui-analysis-resolution-adjustment.jpg)
 
 ### Device Debugging
 
@@ -93,36 +93,36 @@ The following screenshots are from the current version of the Android app.
 - Real-time information
 - Floating debug window
 
-![Screen following, device information, and debugging](./screen-following-device-info-debugging.jpg)
+![Screen following, device information, and debugging](./EN/screen-following-device-info-debugging.jpg)
 
 ## How to Enable Wireless Debugging
 
 ### Developer Options
 
-![Developer options](./developer-options.jpg)
+![Developer options](./EN/developer-options.jpg)
 
-![Wireless Debugging](./wireless-debugging.jpg)
+![Wireless Debugging](./EN/wireless-debugging.jpg)
 
 ### Using the App
 
+#### Pair via Wireless Debugging
+
+![Device pairing](./EN/wireless-debugging-pairing.jpg)
+
 #### Add a Session
 
-![Add a session](./add-session.jpg)
+![Add a session](./EN/add-session.jpg)
 
 #### Add a Session Address
 
-![Add an mDNS address](./add-mdns-address.jpg)
-
-#### Pair via Wireless Debugging
-
-![Device pairing](./wireless-debugging-pairing.jpg)
+![Add an mDNS address](./EN/add-mdns-address.jpg)
 
 ## Star History
 
 <a href="https://www.star-history.com/?repos=XRSec%2FScreen-Remote&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&theme=dark&legend=top-left&sealed_token=LKnabYe1iTjH5Z-0o2cnSwnlQQ_JMsMvQ4c5V6pgEzHGoiSI7k-u2oCRSU3YMeYQnU86cssUZoGWJzbncchLa35UlpaQMdFQuGRzobudJkDC1AGCdgQc_Q" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&legend=top-left&sealed_token=LKnabYe1iTjH5Z-0o2cnSwnlQQ_JMsMvQ4c5V6pgEzHGoiSI7k-u2oCRSU3YMeYQnU86cssUZoGWJzbncchLa35UlpaQMdFQuGRzobudJkDC1AGCdgQc_Q" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=XRSec/Screen-Remote&type=date&legend=top-left&sealed_token=LKnabYe1iTjH5Z-0o2cnSwnlQQ_JMsMvQ4c5V6pgEzHGoiSI7k-u2oCRSU3YMeYQnU86cssUZoGWJzbncchLa35UlpaQMdFQuGRzobudJkDC1AGCdgQc_Q" />
  </picture>
 </a>

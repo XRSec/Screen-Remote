@@ -52,8 +52,12 @@
 	shallow = true
 	fetchRecurseSubmodules = false
 
-[submodule "wiki"]
-	path = wiki
+[submodule "external/wiki"]
+	path = external/wiki
 	url = git@github.com:XRSec/Screen-Remote.wiki.git
 	shallow = true
 	fetchRecurseSubmodules = false
+[submodule "external/ScrcpyForAndroid-aaxianyu"]
+	path = external/ScrcpyForAndroid-aaxianyu
+	url = https://github.com/aaxianyu/ScrcpyForAndroid
+	branch = open-source

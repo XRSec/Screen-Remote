@@ -1,7 +1,7 @@
 # Screen Remote
 
 > [!IMPORTANT]
-> [English](README.md) | [简体中文](README_CN.md) | [User Guide](https://github.com/XRSec/Screen-Remote/wiki/用户使用文档) | [Developer Guide](https://github.com/XRSec/Screen-Remote/wiki/开发文档) | [Bilibili](https://b23.tv/BV1BAKg6kE7v) | [YouTube](https://youtu.be/2LU9DtDK3fs)
+> [English](README.md) | [简体中文](README_CN.md) | [User Guide](https://github.com/XRSec/Screen-Remote/wiki/User-Documentation) | [Developer Guide](https://github.com/XRSec/Screen-Remote/wiki/Developer-Documentation) | [Bilibili](https://b23.tv/BV1BAKg6kE7v) | [YouTube](https://youtu.be/2LU9DtDK3fs)
 
 Screen Remote is a remote control and device management app that lets one Android device control
 another.

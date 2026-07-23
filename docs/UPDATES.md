@@ -1,23 +1,13 @@
-# Update Log
+## Add URL automation and compatibility recovery
 
-## 4.4.3.6
+- Add screen-remote URLs for navigation, transient scrcpy overrides, management, and settings.
+- Add an ADB screenshot compatibility mode with user-confirmed video capture and decoder-size recovery.
+- Add opt-out telemetry, debug diagnostics, media hardening, remote volume-key forwarding, and regression coverage.
 
-Release Date: 2026-07-21
+## Add legacy shell fallback and remote device helpers
 
-- Added in-app download and installation update functionality, standardizing the four-segment version number.
-
-- Optimized MTK H.264 encoding for better image quality and low latency, improved game mode bitrate.
-
-- Fixed API compatibility issues with screen punch-hole, file selection, and session management.
-
-- Fixed the issue of session editing page bitrate displaying the original value.
-
-- Added game tags.
-
-- Updated keyboard hints.
-
-- Allowed the use of the floating ball in game mode.
-
-- Game modification update to 1M 2M 4M 8M 20M.
-
-- Updated backup and restore backup fields.
+- Fall back from shell_v2 to legacy shell when unsupported or rejected, and remember rejected connection features.
+- Add a remote JPEG screenshot stream with DisplaySurface and SurfaceControl capture backends.
+- Add helper APIs for directory listing, process inspection, application metadata, icons, and remote text injection.
+- Extend compatibility to older Android runtimes and replace unavailable platform APIs with portable implementations.
+- Add regression and integration coverage for legacy shell, management helpers, screenshots, and platform compatibility.

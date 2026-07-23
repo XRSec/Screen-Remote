@@ -1,0 +1,19 @@
+{
+  "name": "screen-remote-mcp",
+  "version": "0.5.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP diagnostics and app URL commands for Screen Remote debug builds",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test test/*.test.mjs",
+    "test:live": "node scripts/smoke-readonly.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "zod": "4.4.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -72,7 +72,6 @@ server.registerTool(
     inputSchema: {
       action: z.enum([
         "sessions",
-        "actions",
         "settings",
         "new_session",
         "edit_session",

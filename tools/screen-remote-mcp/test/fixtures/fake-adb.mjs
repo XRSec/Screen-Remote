@@ -141,7 +141,6 @@ function providerPayload(method) {
         generatedAtEpochMs,
         navigation: {
           sessions: "screen-remote://open/sessions",
-          actions: "screen-remote://open/actions",
           settings: "screen-remote://open/settings",
         },
         templates: {

@@ -81,8 +81,6 @@ export function buildScreenRemoteUrl({
   switch (action) {
     case "sessions":
       return "screen-remote://open/sessions";
-    case "actions":
-      return "screen-remote://open/actions";
     case "settings":
       return "screen-remote://open/settings";
     case "new_session": {

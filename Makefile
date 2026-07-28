@@ -101,3 +101,6 @@ getLine:
 
 forward:
 	socat TCP4-LISTEN:15555,bind=192.168.5.14,reuseaddr,fork TCP4:127.0.0.1:5555
+
+debug:
+	@cd Screen-Remote && ./gradlew assembleDebug

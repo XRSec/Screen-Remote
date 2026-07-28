@@ -15,6 +15,7 @@ OUT_DIR := $(HOME)/Downloads
 # 签名配置
 KEYSTORE_FILE := Screen-Remote/release.keystore
 KEYSTORE_PROPS := Screen-Remote/keystore.properties
+COMMIT_MESSAGE_FILE := $(shell git -C Screen-Remote rev-parse --path-format=absolute --git-path codex-pre-push/commit-message.txt)
 
 help:
 	@echo "可用命令："
@@ -104,3 +105,9 @@ forward:
 
 debug:
 	@cd Screen-Remote && ./gradlew assembleDebug
+
+commit:
+	@cd Screen-Remote; git commit --amend -F "$(COMMIT_MESSAGE_FILE)"
+	@cd external/dadb; git commit --amend -F "$(COMMIT_MESSAGE_FILE)"
+	@cd external/wiki; git commit --amend -F "$(COMMIT_MESSAGE_FILE)"
+	@git commit --amend -F "$(COMMIT_MESSAGE_FILE)"

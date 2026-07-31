@@ -64,7 +64,7 @@ _copy-release-apks:
 	for apk in "$(RENAMED_RELEASE_DIR)"/Screen.Remote-*.apk; do \
 		[ -f "$$apk" ] || continue; \
 		cp -f "$$apk" "$(OUT_DIR)/"; \
-		echo "  ✓ $$(basename "$$apk")"; \
+		#echo "  ✓ $$(basename "$$apk")"; \
 		found=1; \
 	done; \
 	if [ "$$found" -ne 1 ]; then \

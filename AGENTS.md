@@ -1,5 +1,7 @@
 # AI 必读
 
+> 项目路由：`Screen-Remote/` 是 Android 项目，使用本文件规则；`Screen-Remote-macOS/` 是 macOS 项目，使用 `Screen-Remote-macOS/AGENTS.md`规则。
+
 - 不考虑旧版本兼容性问题
 - 不要为了兼容旧版本、旧数据结构、旧存储路径或历史行为
 - 不要总是跑编译
@@ -12,3 +14,11 @@
 - Android Studio MCP 的固定运行设备为控制端 `10AEAG2YZS0020P`（vivo V2403A）。需要运行应用时，先调用 `get_run_configurations` 获取准确配置名，再按需调用 `execute_run_configuration`；不得用 ADB 命令替代 Android Studio 的编译、安装或正常运行流程
 - `build_project` 和 `execute_run_configuration` 仅在任务确实需要验证或用户明确要求运行时调用，不因一般代码修改默认触发
 - 本项目确实需要编译并安装应用时，可以调用 Android Studio MCP 的 `execute_run_configuration` 完成；如果 Android Studio MCP 不在线，或运行因非编译问题失败，必须停止并明确提示用户“Android Studio MCP 不在线”，不得改用 ADB 或其他安装方式绕过
+
+## 子代理模型分工
+
+- 当任务中存在边界清晰、风险较低且可独立完成的编码子任务时，优先将这部分工作委派给 `gpt-5.3-codex-spark`，利用其快速、面向编码的特点降低等待时间；不要为了使用子代理而强行拆分任务
+- 适合委派的工作包括：代码与文件定位、局部实现调查、单文件或少量文件的机械性修改、补充针对性测试、整理编译或日志错误，以及对明确范围的改动做独立复查
+- 委派时必须给出具体目标、允许修改的范围、相关约束和预期交付物；能并行且不会修改同一批文件的子任务可以并行执行
+- 主代理必须负责总体方案、跨模块设计、任务拆分、结果整合和最终验证；涉及架构决策、模糊需求、高风险修改、复杂并发或生命周期问题、跨模块重构，以及需要综合判断的疑难问题，不得直接交由 `gpt-5.3-codex-spark` 独立决定
+- 涉及 Compose UI、Android Studio 运行、设备操作、发布流程或其他受本文件约束的操作时，子代理同样必须遵守全部项目规则；主代理必须检查其结论和修改，不得未经审查直接采用

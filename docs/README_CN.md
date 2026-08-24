@@ -1,9 +1,19 @@
 # Screen Remote
 
 > [!IMPORTANT]
-> [English](README.md) | [简体中文](README_CN.md) | [用户使用文档](https://github.com/XRSec/Screen-Remote/wiki/用户使用文档) | [开发文档](https://github.com/XRSec/Screen-Remote/wiki/开发文档) | [哔哩哔哩](https://b23.tv/BV1BAKg6kE7v) | [YouTube](https://youtu.be/2LU9DtDK3fs)
+> 语言：[English](README.md) | [简体中文](README_CN.md)
+>
+> 文档：[用户使用文档](https://github.com/XRSec/Screen-Remote/wiki/用户使用文档) | [开发文档](https://github.com/XRSec/Screen-Remote/wiki/开发文档)
+>
+> 仓库入门：[Android](android-repository-guide.zh-CN.md) | [macOS](macos-repository-guide.zh-CN.md)
+>
+> 项目链接：[哔哩哔哩](https://b23.tv/BV1BAKg6kE7v) | [YouTube](https://youtu.be/2LU9DtDK3fs)
 
 Screen Remote 是一个面向 Android 控制 Android 的远程控制与设备管理应用。
+
+本仓库是 Android 客户端的公开首页与发布入口。开源原生 macOS 控制端独立维护在
+[Screen-Remote-macOS](https://github.com/XRSec/Screen-Remote-macOS)，详细文档位于其独立的
+[macOS Wiki](https://github.com/XRSec/Screen-Remote-macOS/wiki)。
 
 它基于 scrcpy 和 Android ADB 能力，在一台 Android 设备上完成另一台 Android
 设备的连接、投屏、音视频传输、触控操作和日常管理，无需依赖电脑。应用支持 TCP、USB Host 与 Wireless

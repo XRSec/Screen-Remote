@@ -1,4 +1,4 @@
-.PHONY: help release submodule wiki-resume emulator log logall getLine \
+.PHONY: help release submodule wiki-resume android-review-message emulator log logall getLine \
 	_ensure-keystore _rename-release-apks _copy-release-apks
 
 EMULATOR_NAME := Pixel_9
@@ -11,6 +11,7 @@ VERSION_CODE := $(shell awk -F= '/^VERSION_CODE=/ { print $$2; exit }' Screen-Re
 RELEASE_DIR := Screen-Remote/app/build/outputs/apk/release
 RENAMED_RELEASE_DIR := Screen-Remote/app/build/outputs/renamed_apks/release
 OUT_DIR := $(HOME)/Downloads
+TARGET_ABI ?=
 
 # 签名配置
 KEYSTORE_FILE := Screen-Remote/release.keystore
@@ -20,8 +21,9 @@ COMMIT_MESSAGE_FILE := $(shell git -C Screen-Remote rev-parse --path-format=abso
 help:
 	@echo "可用命令："
 	@echo "  make release   - 编译、重命名并复制 release APK"
-	@echo "  make submodule - 无 tags 更新外部依赖，跳过 Screen-Remote/external/wiki"
+	@echo "  make submodule - 无 tags 更新外部参考，跳过两个平台源码与两个 Wiki"
 	@echo "  make wiki-resume - 恢复中断的 pre-push Wiki 审读，不重新读取已完成上下文"
+	@echo "  make android-review-message - 只在 Android 源码仓库采用 hook 生成的 message"
 	@echo "  make emulator  - 启动 $(EMULATOR_NAME) 模拟器"
 	@echo "  make log       - 查看远控主链路日志"
 	@echo "  make logall    - 查看应用全部日志"
@@ -51,8 +53,8 @@ _ensure-keystore:
 	fi
 
 release: _ensure-keystore
-	@echo "编译 release 版本（所有架构）..."
-	cd Screen-Remote && ./gradlew assembleRelease
+	@echo "编译 release 版本..."
+	cd Screen-Remote && ./gradlew assembleRelease $(if $(TARGET_ABI),-PTARGET_ABI=$(TARGET_ABI),)
 	@$(MAKE) --no-print-directory _rename-release-apks
 	@$(MAKE) --no-print-directory _copy-release-apks OUT_DIR="$(OUT_DIR)"
 
@@ -64,7 +66,7 @@ _copy-release-apks:
 	for apk in "$(RENAMED_RELEASE_DIR)"/Screen.Remote-*.apk; do \
 		[ -f "$$apk" ] || continue; \
 		cp -f "$$apk" "$(OUT_DIR)/"; \
-		#echo "  ✓ $$(basename "$$apk")"; \
+		echo "  ✓ $$(basename "$$apk")"; \
 		found=1; \
 	done; \
 	if [ "$$found" -ne 1 ]; then \
@@ -95,7 +97,7 @@ log:
 	@adb logcat -v threadtime SSVR:D SKPK:D SCLI:D '*:S' 2>&1 | grep --line-buffered -E '\[server\] (INFO: Device:|DEBUG: Creating (video|audio) encoder)|scrcpy-server 已启动|开始连接 socket|video socket connected|audio socket connected|control socket connected|[Dd]ummy byte|自动交换|Socket 建链失败|video:device_meta|video device meta|video stream codec|video session meta parsed|读取视频元数据失败'
 
 logall:
-	@adb logcat -c && adb logcat --pid="$$(adb shell pidof -s com.screen.remote.android.debug)" -v threadtime '*:V'
+	@adb logcat -c && adb logcat --pid="$$(adb shell pidof -s com.screen.remote.android)" -v threadtime '*:V'
 
 getLine:
 	@find Screen-Remote/app/src -type f -name "*.kt" -exec wc -l {} \; | sort
@@ -106,8 +108,7 @@ forward:
 debug:
 	@cd Screen-Remote && ./gradlew assembleDebug
 
-commit:
+android-review-message:
 	@cd Screen-Remote; git commit --amend -F "$(COMMIT_MESSAGE_FILE)"
 	@cd external/dadb; git commit --amend -F "$(COMMIT_MESSAGE_FILE)"
-	@cd external/wiki; git commit --amend -F "$(COMMIT_MESSAGE_FILE)"
-	@git commit --amend -F "$(COMMIT_MESSAGE_FILE)"
+	@cd external/wiki-android; git commit --amend -F "$(COMMIT_MESSAGE_FILE)"

@@ -1,0 +1,17 @@
+{
+  "description": "On the first prompt of each Screen Remote session, refresh QMD when needed and return relevant Wiki paths without loading document contents.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/env node \"$(git rev-parse --show-toplevel)/.codex/hooks/qmd-session-paths.mjs\"",
+            "statusMessage": "Refreshing QMD if needed and finding relevant Wiki paths",
+            "timeout": 35
+          }
+        ]
+      }
+    ]
+  }
+}

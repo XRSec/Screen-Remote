@@ -12,7 +12,12 @@ const dryRun = process.argv.includes("--dry-run");
 const statusOnly = process.argv.includes("--status");
 const unknownArgs = process.argv.slice(2).filter((arg) => !["--dry-run", "--status"].includes(arg));
 
-const skipped = new Set(["Screen-Remote", "external/wiki"]);
+const skipped = new Set([
+  "Screen-Remote",
+  "Screen-Remote-macOS",
+  "external/wiki-android",
+  "external/wiki-macos",
+]);
 const dadbPath = "external/dadb";
 const dadbUpstreamUrl = "git@github.com:mobile-dev-inc/dadb.git";
 const recentCommitLimit = 8;

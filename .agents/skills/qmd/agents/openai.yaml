@@ -1,0 +1,4 @@
+interface:
+  display_name: "Screen Remote QMD"
+  short_description: "Search and audit bilingual Screen Remote Wikis"
+  default_prompt: "Use $qmd to search the Screen Remote Wikis and verify bilingual page pairing when relevant."

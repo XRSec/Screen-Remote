@@ -34,7 +34,7 @@ jobs:
           fi
 
       - name: Checkout release metadata
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
         with:
           path: workspace
           token: ${{ env.GH_TOKEN }}
@@ -42,7 +42,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout application source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
         with:
           repository: ${{ env.SOURCE_REPOSITORY }}
           ref: ${{ env.SOURCE_REF }}
@@ -52,7 +52,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout dadb dependency
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
         with:
           repository: ${{ env.DADB_REPOSITORY }}
           ref: ${{ env.DADB_REF }}
@@ -62,13 +62,13 @@ jobs:
           persist-credentials: false
 
       - name: Set up Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.7.0
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
+        uses: android-actions/setup-android@v4.0.1
 
       - name: Set up Gradle cache
         uses: gradle/actions/setup-gradle@v6
@@ -160,7 +160,7 @@ jobs:
 
       - name: Upload build artifact
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: release-apks-${{ steps.build.outputs.version_name || github.run_number }}
           path: release-assets/*.apk

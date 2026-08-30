@@ -1,10 +1,20 @@
 # Screen Remote
 
 > [!IMPORTANT]
-> [English](README.md) | [简体中文](README_CN.md) | [User Guide](https://github.com/XRSec/Screen-Remote/wiki/User-Documentation) | [Developer Guide](https://github.com/XRSec/Screen-Remote/wiki/Developer-Documentation) | [Bilibili](https://b23.tv/BV1BAKg6kE7v) | [YouTube](https://youtu.be/2LU9DtDK3fs)
+> Language: [English](README.md) | [简体中文](README_CN.md)
+>
+> Documentation: [User Guide](https://github.com/XRSec/Screen-Remote/wiki/User-Documentation) | [Developer Guide](https://github.com/XRSec/Screen-Remote/wiki/Developer-Documentation)
+>
+> Repository onboarding: [Android](android-repository-guide.md) | [macOS](macos-repository-guide.md)
+>
+> Project links: [Bilibili](https://b23.tv/BV1BAKg6kE7v) | [YouTube](https://youtu.be/2LU9DtDK3fs)
 
 Screen Remote is a remote control and device management app that lets one Android device control
 another.
+
+This repository is the public home and release entry for the Android client. The open-source native
+macOS controller is maintained separately in [Screen-Remote-macOS](https://github.com/XRSec/Screen-Remote-macOS),
+with its own [macOS Wiki](https://github.com/XRSec/Screen-Remote-macOS/wiki).
 
 Built on scrcpy and Android ADB, it enables an Android device to connect to, mirror, stream audio
 and video from, control, and manage another Android device—without a computer. The app supports TCP,

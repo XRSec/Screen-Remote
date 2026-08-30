@@ -18,6 +18,26 @@
 	url = https://github.com/MuntashirAkon/libadb-android.git
 	shallow = true
 	fetchRecurseSubmodules = false
+[submodule "external/AndroLaunch"]
+	path = external/AndroLaunch
+	url = https://github.com/aman-senpai/AndroLaunch.git
+	shallow = true
+	fetchRecurseSubmodules = false
+[submodule "external/KonnectMac"]
+	path = external/KonnectMac
+	url = https://github.com/aryarajsingh/KonnectMac.git
+	shallow = true
+	fetchRecurseSubmodules = false
+[submodule "external/Sefirah"]
+	path = external/Sefirah
+	url = https://github.com/shrimqy/Sefirah.git
+	shallow = true
+	fetchRecurseSubmodules = false
+[submodule "external/scrcpy-mask"]
+	path = external/scrcpy-mask
+	url = https://github.com/AkiChase/scrcpy-mask
+	shallow = true
+	fetchRecurseSubmodules = false
 
 [submodule "external/Easycontrol"]
 	path = external/Easycontrol
@@ -48,16 +68,35 @@
 
 [submodule "Screen-Remote"]
 	path = Screen-Remote
-	url = git@github.com:XRSec/Screen-Remote-src.git
+	url = git@github.com:XRSec/Screen-Remote-SRC.git
+	shallow = true
+	fetchRecurseSubmodules = false
+[submodule "Screen-Remote-macOS"]
+	path = Screen-Remote-macOS
+	url = git@github.com:XRSec/Screen-Remote-macOS.git
 	shallow = true
 	fetchRecurseSubmodules = false
 
-[submodule "external/wiki"]
-	path = external/wiki
+[submodule "external/wiki-android"]
+	path = external/wiki-android
 	url = git@github.com:XRSec/Screen-Remote.wiki.git
+	shallow = true
+	fetchRecurseSubmodules = false
+[submodule "external/wiki-macos"]
+	path = external/wiki-macos
+	url = git@github.com:XRSec/Screen-Remote-macOS.wiki.git
 	shallow = true
 	fetchRecurseSubmodules = false
 [submodule "external/ScrcpyForAndroid-aaxianyu"]
 	path = external/ScrcpyForAndroid-aaxianyu
 	url = https://github.com/aaxianyu/ScrcpyForAndroid
 	branch = open-source
+[submodule "external/Easycontrol_For_Car"]
+	path = external/Easycontrol_For_Car
+	url = https://github.com/eiyooooo/Easycontrol_For_Car.git
+[submodule "external/adbd-auth-gateway"]
+	path = external/adbd-auth-gateway
+	url = git@github.com:XRSec/adbd-auth-gateway.git
+[submodule "external/Android-Dex"]
+	path = external/Android-Dex
+	url = https://github.com/Shrey113/Android-Dex

@@ -97,3 +97,6 @@
 [submodule "external/adbd-auth-gateway"]
 	path = external/adbd-auth-gateway
 	url = git@github.com:XRSec/adbd-auth-gateway.git
+[submodule "external/Android-Dex"]
+	path = external/Android-Dex
+	url = https://github.com/Shrey113/Android-Dex

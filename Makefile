@@ -21,7 +21,7 @@ COMMIT_MESSAGE_FILE := $(shell git -C Screen-Remote rev-parse --path-format=abso
 help:
 	@echo "可用命令："
 	@echo "  make release   - 编译、重命名并复制 release APK"
-	@echo "  make submodule - 无 tags 更新外部参考，跳过两个平台源码与两个 Wiki"
+	@echo "  make submodule - 无 tags 更新外部参考，跳过两个平台源码、遥测服务与两个 Wiki"
 	@echo "  make wiki-resume - 恢复中断的 pre-push Wiki 审读，不重新读取已完成上下文"
 	@echo "  make android-review-message - 只在 Android 源码仓库采用 hook 生成的 message"
 	@echo "  make emulator  - 启动 $(EMULATOR_NAME) 模拟器"

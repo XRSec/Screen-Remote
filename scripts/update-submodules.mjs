@@ -15,6 +15,7 @@ const unknownArgs = process.argv.slice(2).filter((arg) => !["--dry-run", "--stat
 const skipped = new Set([
   "Screen-Remote",
   "Screen-Remote-macOS",
+  "external/screen-remote-telemetry",
   "external/wiki-android",
   "external/wiki-macos",
 ]);

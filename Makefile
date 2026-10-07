@@ -16,7 +16,13 @@ TARGET_ABI ?=
 # 签名配置
 KEYSTORE_FILE := Screen-Remote/release.keystore
 KEYSTORE_PROPS := Screen-Remote/keystore.properties
-COMMIT_MESSAGE_FILE := $(shell git -C Screen-Remote rev-parse --path-format=absolute --git-path codex-pre-push/commit-message.txt)
+COMMIT_MESSAGE_FILE := $(shell \
+	f=$$(git -C Screen-Remote rev-parse --path-format=absolute --git-path claude-pre-push/commit-message.txt 2>/dev/null); \
+	if [ -f "$$f" ]; then echo "$$f"; else \
+		f2=$$(git -C Screen-Remote rev-parse --path-format=absolute --git-path pi-pre-push/commit-message.txt 2>/dev/null); \
+		if [ -f "$$f2" ]; then echo "$$f2"; else git -C Screen-Remote rev-parse --path-format=absolute --git-path codex-pre-push/commit-message.txt 2>/dev/null; fi \
+	fi \
+)
 
 help:
 	@echo "可用命令："

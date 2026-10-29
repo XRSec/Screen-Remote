@@ -1,13 +1,12 @@
 # Screen Remote 聚合仓库导航
 
-本仓库 `XRSec/Screen-Remote` 是公开的 Android 项目首页与聚合工作区。它负责公开介绍、发布入口、平台仓库和外部参考项目的子模块指针，以及少量跨平台工具；Android 闭源实现位于 `Screen-Remote/`，macOS 开源实现位于 `Screen-Remote-macOS/`。平台业务规则不在本文件重复维护。
+本仓库 `XRSec/Screen-Remote` 是公开的 Android 项目首页与聚合工作区。它负责公开介绍、发布入口、平台仓库和外部参考项目的子模块指针，以及少量跨平台工具；Android 闭源实现位于 `Screen-Remote/`，桌面端开源实现位于 `Screen-Remote-desktop/`。平台业务规则不在本文件重复维护。
 
 ## 规则路由
 
 进入子目录工作时，以路径上最近的 `AGENTS.md` 为准：
 
 - `Screen-Remote/**`：Android 私有源码仓库，读取 `Screen-Remote/AGENTS.md`。
-- `Screen-Remote-macOS/**`：macOS 开源源码仓库，读取 `Screen-Remote-macOS/AGENTS.md`。
 - `Screen-Remote-desktop/**`：桌面端 (Tauri + React) 源码仓库，读取 `Screen-Remote-desktop/AGENTS.md`。
 - `external/wiki-android/**`：Android GitHub Wiki 独立仓库；遵守其中的文档维护规则。
 - `external/wiki-macos/**`：macOS GitHub Wiki 独立仓库；遵守其首页、侧栏和双语配对约定。
@@ -22,7 +21,7 @@
 - `docs/`：公开首页媒体、根仓库发布资料及明确的跨平台契约；不要在这里新增平台实现专题。
 - `external/wiki-android/`：Android 用户文档、开发文档、Compose 设计系统与 Android 调试说明。
 - `external/wiki-macos/`：macOS 用户文档、SwiftUI 设计系统、原生 scrcpy 管线、Xcode 构建与发布说明。
-- `Screen-Remote-macOS/README.md`：macOS 开源仓库首页；详细内容链接到 macOS Wiki。
+- `Screen-Remote-desktop/README.md`：桌面端开源仓库首页。
 
 跨平台协议若同时被 Android 和 macOS 消费，在根 `docs/contracts/` 维护稳定契约；两个 Wiki 只解释各自平台如何实现和验证，不复制一份容易漂移的协议正文。
 

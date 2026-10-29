@@ -71,11 +71,6 @@
 	url = git@github.com:XRSec/Screen-Remote-SRC.git
 	shallow = true
 	fetchRecurseSubmodules = false
-[submodule "Screen-Remote-macOS"]
-	path = Screen-Remote-macOS
-	url = git@github.com:XRSec/Screen-Remote-macOS.git
-	shallow = true
-	fetchRecurseSubmodules = false
 
 [submodule "external/wiki-android"]
 	path = external/wiki-android
@@ -100,3 +95,6 @@
 [submodule "external/Android-Dex"]
 	path = external/Android-Dex
 	url = https://github.com/Shrey113/Android-Dex
+[submodule "Screen-Remote-desktop"]
+	path = Screen-Remote-desktop
+	url = git@github.com:XRSec/Screen-Remote-desktop.git

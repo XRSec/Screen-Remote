@@ -1,7 +1,13 @@
-# 4.4.3.15 — Final Release Supporting minSdk: 23 (Android 6.0+)
+# 4.4.3.16 — Final Release Supporting minSdk: 23 (Android 6.0+)
 
 > ⚠️ **重要公告 / Notice**: 这是支持 Android 6.0+ (`minSdk: 23`) 的**最后一个版本**。后续版本将提升最低支持系统版本，以现代化 Android 底层架构。
 > This is the **final release supporting Android 6.0+ (`minSdk: 23`)**. Subsequent releases will raise the minimum SDK requirement to modernize the Android runtime architecture.
+
+## 管理功能与文件浏览性能优化 (File Management & Performance)
+
+- **移除冗余的 Helper 强制推送**：在底层 `dadb` 通道中关闭了每次目录查询前对 `dadb-helper.jar` 的无条件重复推送，仅在远端缺失或版本不匹配时才执行补推，显著消除因网络 I/O 带来的目录加载延迟。
+- **本地 Helper 资产内存缓存**：避免每次列出或刷新目录时反复从 APK assets 执行重复解压写盘，降低 I/O 开销。
+- **大幅提升目录加载速度**：进入文件管理、多级文件夹上下穿梭的加载体验恢复毫秒级流畅响应。
 
 ## 本机无线调试体系与期望状态自愈 (Local ADB & Desired State)
 
@@ -23,17 +29,3 @@
 - **scrcpy server 升级至 5.0.1**，同步底层协议与媒体管道。
 - **控制消息保序与防抖**：引入协程 Channel FIFO 顺序管道与原子两阶段按键机制，支持鼠标高精度滚轮滑动注入 (`ScrollMessage`) 与控制队列背压防护 (`MAX_PENDING_CONTROL_MESSAGES = 256`)。
 - **显示控制与状态解耦**：通知栏下拉、黑屏待机模式与画面镜像完全独立控制，退出远控自动恢复系统屏幕方向 (`SCREEN_ORIENTATION_USER`)。
-
-## Add URL automation and compatibility recovery
-
-- Add screen-remote URLs for navigation, transient scrcpy overrides, management, and settings.
-- Add an ADB screenshot compatibility mode with user-confirmed video capture and decoder-size recovery.
-- Add opt-out telemetry, debug diagnostics, media hardening, remote volume-key forwarding, and regression coverage.
-
-## Add legacy shell fallback and remote device helpers
-
-- Fall back from shell_v2 to legacy shell when unsupported or rejected, and remember rejected connection features.
-- Add a remote JPEG screenshot stream with DisplaySurface and SurfaceControl capture backends.
-- Add helper APIs for directory listing, process inspection, application metadata, icons, and remote text injection.
-- Extend compatibility to older Android runtimes and replace unavailable platform APIs with portable implementations.
-- Add regression and integration coverage for legacy shell, management helpers, screenshots, and platform compatibility.

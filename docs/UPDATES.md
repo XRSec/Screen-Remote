@@ -1,7 +1,12 @@
-# 4.4.3.16 — Final Release Supporting minSdk: 23 (Android 6.0+)
+# public-ip-k5en2smz — Final Release Supporting minSdk: 23 (Android 6.0+)
 
 > ⚠️ **重要公告 / Notice**: 这是支持 Android 6.0+ (`minSdk: 23`) 的**最后一个版本**。后续版本将提升最低支持系统版本，以现代化 Android 底层架构。
 > This is the **final release supporting Android 6.0+ (`minSdk: 23`)**. Subsequent releases will raise the minimum SDK requirement to modernize the Android runtime architecture.
+
+## 首次安装与引导修复 (First Install & Onboarding Fix)
+
+- **修复全新安装启动白屏**：修复在系统（如 ColorOS 16 / Android 15+ 等）或全新环境中首次安装打开时，因重构遗漏挂载引导欢迎卡片导致全屏背景遮罩卡在顶层的白板（空白）问题。恢复首次启动引导卡片及跳过/完成回调。
+- **Fix Blank Screen on Fresh Install**: Fixed an issue where clean/fresh app installations displayed a blank/white screen due to unmounted onboarding cards keeping the fullscreen background layer stuck on top. Restored the initial welcome card and its completion callback.
 
 ## 管理功能与文件浏览性能优化 (File Management & Performance)
 

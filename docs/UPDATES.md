@@ -1,12 +1,18 @@
-# v4.4.3.17 — Final Release Supporting minSdk: 23 (Android 6.0+)
+# v4.4.3.18
 
-> ⚠️ **重要公告 / Notice**: 这是支持 Android 6.0+ (`minSdk: 23`) 的**最后一个版本**。后续版本将提升最低支持系统版本，以现代化 Android 底层架构。
-> This is the **final release supporting Android 6.0+ (`minSdk: 23`)**. Subsequent releases will raise the minimum SDK requirement to modernize the Android runtime architecture.
+## 设备管理与主题问题修复 (Session Management & Theme Fixes)
+
+- **修复设备管理界面主题适配**：修复会话管理界面与顶部栏在深色/浅色模式切换时背景和文本色彩未正确跟随的问题，显式接入 `ScreenRemoteMiuixTheme` 并补齐主题语义色彩映射，保证视觉一致性。
+- **Fix Theme Switching in Management**: Fixed background and typography color synchronization issues in session management and its top bar during light/dark theme toggles by properly integrating `ScreenRemoteMiuixTheme` with semantic theme tokens.
+
+## dadb 缓存与本地版本自愈 (dadb Cache & Self-healing Versioning)
+
+- **本地版本特征签名校验**：在 `DadbHelperAsset` 中增加本地版本特征签名（`VERSION_CODE_DADB_HELPER_VERSION`）比对机制，在应用跨版本升级、覆盖安装时自动检测并覆写更新 `dadb-helper.jar`，杜绝旧版本残留。
+- **日常零冗余 I/O**：同版本运行期间直接复用本地缓存资产，免除进入管理功能时的重复解压与写盘开销。
 
 ## 首次安装与引导修复 (First Install & Onboarding Fix)
 
 - **修复全新安装启动白屏**：修复在系统（如 ColorOS 16 / Android 15+ 等）或全新环境中首次安装打开时，因重构遗漏挂载引导欢迎卡片导致全屏背景遮罩卡在顶层的白板（空白）问题。恢复首次启动引导卡片及跳过/完成回调。
-- **Fix Blank Screen on Fresh Install**: Fixed an issue where clean/fresh app installations displayed a blank/white screen due to unmounted onboarding cards keeping the fullscreen background layer stuck on top. Restored the initial welcome card and its completion callback.
 
 ## 管理功能与文件浏览性能优化 (File Management & Performance)
 

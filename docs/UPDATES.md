@@ -1,4 +1,9 @@
-# v4.4.3.18
+# v4.4.3.19
+
+## 三星 Android 11 编码器栈溢出修复 (Samsung Android 11 Encoder Crash Fix)
+
+- **精简 `scrcpy-server` 启动命令行参数**：在 `buildScrcpyCommand` 中省略与 `scrcpy-server` 默认值一致的冗余参数（如 `log_level=debug`、`stay_awake=false`、`power_off_on_close=false`、`send_*_meta=true`、`send_dummy_byte=true`、`display_id=0`、默认编解码器与码率），将典型 `app_process` 命令行长度控制在 256 字节以内，修复三星 Galaxy A50 等 Android 11 设备媒体框架拷贝 `/proc/self/cmdline` 时触发 `stack corruption detected` 导致投屏失败的问题（[#24](https://github.com/XRSec/Screen-Remote/issues/24)）。
+- **Fix Samsung Android 11 Encoder Stack Corruption**: Omit redundant `scrcpy-server` arguments that match upstream defaults in `buildScrcpyCommand`, keeping the typical `app_process` command line under 256 bytes and preventing `stack corruption detected` crashes in Samsung's Android 11 media framework ([#24](https://github.com/XRSec/Screen-Remote/issues/24)).
 
 ## 设备管理与主题问题修复 (Session Management & Theme Fixes)
 
